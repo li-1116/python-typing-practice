@@ -61,6 +61,16 @@
   .brand-cn { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1.3; }
   .brand-cn .sub { font-size: 12px; font-weight: 400; color: var(--dim); margin-left: 8px; letter-spacing: 1px; }
   .top-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .home-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff; border: none; border-radius: 99px;
+    padding: 7px 16px; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .3);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .home-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, .4); }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
     background: rgba(255,255,255,.9); border: 1px solid var(--border);
@@ -383,6 +393,7 @@
       </div>
     </div>
     <div class="top-right">
+      <a class="home-btn" href="./index.html">🏠 回到教程首页</a>
       <span class="chip ready" id="statusChip"><span class="dot"></span><span id="statusText">READY</span></span>
       <span class="chip" id="doneChip">🎯 0 / 18</span>
     </div>
@@ -410,7 +421,7 @@
       <div class="lv-stats" id="lvStats"></div>
     </div>
     <div class="qgrid" id="qgrid"></div>
-    <p class="list-foot"><span id="saveHint">进度自动保存在本浏览器</span> · <button class="linkbtn" id="exportBtn">备份进度码</button> · <button class="linkbtn" id="importBtn">恢复进度码</button> · <button class="linkbtn" id="resetAll">清空全部进度</button> · <a class="home-link" href="./index.html">← 回到教程首页</a></p>
+    <p class="list-foot"><span id="saveHint">进度自动保存在本浏览器</span> · <button class="linkbtn" id="exportBtn">备份进度码</button> · <button class="linkbtn" id="importBtn">恢复进度码</button> · <button class="linkbtn" id="resetAll">清空全部进度</button></p>
   </section>
 
   <!-- 练习视图 -->
