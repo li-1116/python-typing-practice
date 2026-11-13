@@ -98,6 +98,66 @@
   .hero .bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, #22d3ee, #2563eb); border-radius: 99px; transition: width .3s; }
   .hero .bar-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12.5px; color: var(--dim); }
 
+  /* ===== 继续上次 ===== */
+  .resume-card {
+    display: flex; align-items: center; gap: 13px; width: 100%;
+    margin-top: 16px; padding: 11px 15px;
+    background: linear-gradient(135deg, #ecfeff, #eef2ff);
+    border: 1px solid #a5f3fc; border-radius: 12px;
+    cursor: pointer; font-family: inherit; text-align: left; transition: all .15s;
+  }
+  .resume-card:hover { border-color: var(--cyan-deep); box-shadow: 0 6px 18px rgba(6,182,212,.16); transform: translateY(-1px); }
+  .rc-play {
+    flex: none; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--cyan-deep); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rc-main { flex: 1; display: flex; flex-direction: column; line-height: 1.45; min-width: 0; }
+  .rc-main b { font-size: 14px; color: var(--ink); }
+  .rc-main em { font-style: normal; font-size: 12px; color: var(--dim); }
+  .rc-go { flex: none; font-size: 13px; font-weight: 700; color: var(--cyan-deep); }
+
+  /* ===== 两关进度概览 ===== */
+  .lv-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 9px; font-size: 12px; color: var(--dim); }
+  .lv-stats .lvs { display: flex; align-items: center; gap: 6px; }
+  .lv-stats .dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; flex: none; }
+  .lv-stats .dot.on { background: var(--ok); }
+  .lv-stats b { color: var(--ink); font-size: 12.5px; }
+  .resume-card[hidden] { display: none; }
+
+  /* ===== 进度码弹窗 ===== */
+  .code-modal {
+    position: fixed; inset: 0; z-index: 99; padding: 20px;
+    background: rgba(15,23,42,.45); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .code-modal[hidden] { display: none; }
+  .cm-box {
+    background: #fff; border-radius: 16px; padding: 22px 24px; width: 100%; max-width: 520px;
+    box-shadow: 0 20px 50px rgba(15,23,42,.25);
+  }
+  .cm-box h3 { margin: 0 0 6px; font-size: 17px; color: var(--ink); }
+  .cm-desc { margin: 0 0 12px; font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+  #cmText {
+    width: 100%; height: 104px; resize: vertical; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 10px; font-size: 12px;
+    line-height: 1.5; color: #334155; background: #f8fafc; word-break: break-all;
+  }
+  #cmText:focus { outline: 2px solid var(--cyan); border-color: var(--cyan-deep); background: #fff; }
+  .cm-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .cm-btn {
+    border: 1px solid var(--border); background: #fff; border-radius: 9px;
+    padding: 7px 18px; font-size: 13px; font-weight: 700; color: var(--dim);
+    cursor: pointer; font-family: inherit;
+  }
+  .cm-btn:hover { border-color: var(--cyan-deep); color: var(--cyan-deep); }
+  .cm-btn.main { background: var(--cyan-deep); border-color: var(--cyan-deep); color: #fff; }
+  .cm-btn.main:hover { background: #0891b2; color: #fff; }
+  .cm-btn.ghost { margin-left: auto; }
+  .cm-msg { margin: 10px 0 0; font-size: 12.5px; min-height: 18px; }
+  .cm-msg.ok { color: var(--ok); }
+  .cm-msg.bad { color: var(--bad); }
+
   .qgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
   .qcard {
     background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 13px;
@@ -333,15 +393,24 @@
     <div class="hero">
       <h1 id="heroTitle">第 1 关 · 基础打字</h1>
       <p id="heroDesc">第 1 关共 18 题，从 print 练到函数。照着敲代码（敲错不前进），全部敲对自动进入理解题，再逐行看懂。</p>
+      <button class="resume-card" id="resumeCard" hidden>
+        <span class="rc-play">▶</span>
+        <span class="rc-main">
+          <b id="resumeTitle">继续上次的练习</b>
+          <em id="resumeMeta"></em>
+        </span>
+        <span class="rc-go">继续 →</span>
+      </button>
       <div class="tabs" id="levelTabs">
         <button class="tab active" data-level="0">第 1 关 · 基础 <span>18 题</span></button>
         <button class="tab" data-level="1">第 2 关 · 讲义原例 <span>14 题</span></button>
       </div>
       <div class="bar"><div class="bar-fill" id="barFill"></div></div>
       <div class="bar-row"><span id="barLabel">本关进度</span><span id="barNum">0 / 18</span></div>
+      <div class="lv-stats" id="lvStats"></div>
     </div>
     <div class="qgrid" id="qgrid"></div>
-    <p class="list-foot">进度自动保存在本浏览器 · <button class="linkbtn" id="resetAll">清空全部进度</button> · <a class="home-link" href="./index.html">← 回到教程首页</a></p>
+    <p class="list-foot"><span id="saveHint">进度自动保存在本浏览器</span> · <button class="linkbtn" id="exportBtn">备份进度码</button> · <button class="linkbtn" id="importBtn">恢复进度码</button> · <button class="linkbtn" id="resetAll">清空全部进度</button> · <a class="home-link" href="./index.html">← 回到教程首页</a></p>
   </section>
 
   <!-- 练习视图 -->
@@ -1241,10 +1310,14 @@ function load() {
     if (raw && typeof raw === "object") {
       let c = raw.cur;
       if (typeof c === "number" || c == null) c = { 0: Number(c) || 0, 1: 0 };
-      return { items: raw.items || {}, cur: { 0: Number(c[0]) || 0, 1: Number(c[1]) || 0 } };
+      let last = null;
+      if (raw.last && typeof raw.last === "object") {
+        last = { lv: Number(raw.last.lv) || 0, i: Number(raw.last.i) || 0, t: Number(raw.last.t) || 0 };
+      }
+      return { items: raw.items || {}, cur: { 0: Number(c[0]) || 0, 1: Number(c[1]) || 0 }, last: last };
     }
   } catch (e) { /* 隐私模式忽略 */ }
-  return { items: {}, cur: { 0: 0, 1: 0 } };
+  return { items: {}, cur: { 0: 0, 1: 0 }, last: null };
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { /* 忽略 */ }
@@ -1397,6 +1470,7 @@ function stopTimer() {
 function openQuestion(i) {
   cur = Math.min(Math.max(i, 0), items().length - 1);
   store.cur[level] = cur;
+  store.last = { lv: level, i: cur, t: Date.now() };
   save();
   view = "train";
   $("listView").hidden = true;
@@ -1585,6 +1659,118 @@ function renderList() {
       '<span class="tg">' + d.tag + "</span>" +
       "</button>";
   }).join("");
+  renderResume();
+  renderLvStats();
+}
+
+/* ---------- 进度：继续上次 / 两关概览 / 进度码备份 ---------- */
+function timeAgo(t) {
+  if (!t) return "";
+  const s = Math.floor((Date.now() - t) / 1000);
+  if (s < 60) return "刚刚";
+  if (s < 3600) return Math.floor(s / 60) + " 分钟前";
+  if (s < 86400) return Math.floor(s / 3600) + " 小时前";
+  const d = Math.floor(s / 86400);
+  if (d < 30) return d + " 天前";
+  return new Date(t).toLocaleDateString("zh-CN");
+}
+
+function renderResume() {
+  const card = $("resumeCard");
+  if (!card) return;
+  const last = store.last;
+  const lv = last ? LEVELS[last.lv] : null;
+  const q = lv ? lv.items[last.i] : null;
+  if (!q) { card.hidden = true; return; }
+  const done = isDone(last.lv, last.i);
+  $("resumeTitle").textContent = "继续：" + q.title;
+  $("resumeMeta").textContent =
+    "第 " + (last.lv + 1) + " 关 · 第 " + (last.i + 1) + " 题「" + q.tag + "」" +
+    (done ? " · 这题已完成，可以再练一遍" : " · 上次没敲完") +
+    (last.t ? " · " + timeAgo(last.t) : "");
+  card.hidden = false;
+}
+
+function renderLvStats() {
+  const box = $("lvStats");
+  if (!box) return;
+  const d0 = levelDone(0), d1 = levelDone(1);
+  const t0 = LEVELS[0].items.length, t1 = LEVELS[1].items.length;
+  const total = d0 + d1, tt = t0 + t1;
+  let html =
+    '<span class="lvs"><span class="dot' + (d0 === t0 ? " on" : "") + '"></span>第 1 关 <b>' + d0 + " / " + t0 + "</b></span>" +
+    '<span class="lvs"><span class="dot' + (d1 === t1 ? " on" : "") + '"></span>第 2 关 <b>' + d1 + " / " + t1 + "</b></span>" +
+    '<span class="lvs">总计 <b>' + total + " / " + tt + "</b>" +
+      (total === tt ? ' <span style="color:var(--ok);font-weight:700">全部完成 🎉</span>' : "") + "</span>";
+  if (store.last && store.last.t) html += '<span class="lvs">上次练习 <b>' + timeAgo(store.last.t) + "</b></span>";
+  box.innerHTML = html;
+  const hint = $("saveHint");
+  if (hint) hint.textContent = store.last && store.last.t
+    ? "进度已自动保存（" + timeAgo(store.last.t) + "）"
+    : "进度自动保存在本浏览器";
+}
+
+/* 进度码：导出 / 导入（换浏览器、清缓存后可恢复） */
+function encodeProgress() {
+  const payload = { v: 1, items: store.items, cur: store.cur, last: store.last };
+  try { return "PTP1." + btoa(JSON.stringify(payload)); } catch (e) { return ""; }
+}
+function decodeProgress(text) {
+  let s = String(text || "").trim().replace(/\s+/g, "");
+  if (!s) return { err: "还没粘贴内容。" };
+  if (s.indexOf("PTP1.") === 0) s = s.slice(5);
+  let obj;
+  try { obj = JSON.parse(atob(s)); } catch (e) { return { err: "进度码不完整或格式不对，请重新复制一次。" }; }
+  if (!obj || typeof obj !== "object" || !obj.items) return { err: "这段码里没有进度数据。" };
+  return { data: obj };
+}
+function applyProgress(text) {
+  const r = decodeProgress(text);
+  if (r.err) return r.err;
+  const inc = r.data.items || {};
+  Object.keys(inc).forEach(function (k) {
+    if (!/^(\d+|c\d+)$/.test(k)) return;
+    store.items[k] = Object.assign({}, store.items[k] || {}, inc[k]);
+  });
+  if (r.data.cur && typeof r.data.cur === "object") {
+    store.cur = {
+      0: Math.max(Number(store.cur[0]) || 0, Number(r.data.cur[0]) || 0),
+      1: Math.max(Number(store.cur[1]) || 0, Number(r.data.cur[1]) || 0)
+    };
+  }
+  if (r.data.last && typeof r.data.last === "object") {
+    const lv = Number(r.data.last.lv) || 0, i = Number(r.data.last.i) || 0;
+    if (LEVELS[lv] && LEVELS[lv].items[i] && (!store.last || (Number(r.data.last.t) || 0) > store.last.t)) {
+      store.last = { lv: lv, i: i, t: Number(r.data.last.t) || Date.now() };
+    }
+  }
+  save();
+  renderList();
+  updateTopChips();
+  return "✓ 已恢复，现在共有 " + doneCount() + " / " + TOTAL + " 题完成。";
+}
+
+function openCodeModal(mode) {
+  const m = $("codeModal"), ta = $("cmText"), msg = $("cmMsg");
+  m.hidden = false;
+  msg.textContent = "";
+  msg.className = "cm-msg";
+  if (mode === "export") {
+    $("cmTitle").textContent = "备份进度码";
+    $("cmDesc").textContent = "把这段码存到微信收藏或记事本。换电脑、换浏览器、清了缓存后，用「恢复进度码」粘贴回来就能接着练。";
+    ta.value = encodeProgress();
+    ta.readOnly = true;
+    $("cmCopy").hidden = false;
+    $("cmApply").hidden = true;
+  } else {
+    $("cmTitle").textContent = "恢复进度码";
+    $("cmDesc").textContent = "把之前备份的进度码粘贴到下面，点「恢复」。已有进度不会被覆盖，只做合并补全。";
+    ta.value = "";
+    ta.readOnly = false;
+    $("cmCopy").hidden = true;
+    $("cmApply").hidden = false;
+  }
+  setTimeout(function () { ta.focus(); ta.select(); }, 60);
 }
 
 /* ---------- 结算 ---------- */
@@ -1624,6 +1810,47 @@ document.addEventListener("click", e => {
   const btn = t.closest("button");
   if (btn) btn.blur(); // 防止 Enter 重复触发按钮
 
+  /* 继续上次 */
+  if (t.closest("#resumeCard")) {
+    const last = store.last;
+    if (last && LEVELS[last.lv] && LEVELS[last.lv].items[last.i]) {
+      level = last.lv;
+      renderList();
+      updateTopChips();
+      openQuestion(last.i);
+    }
+    return;
+  }
+
+  /* 进度码弹窗 */
+  if (t.closest("#exportBtn")) { openCodeModal("export"); return; }
+  if (t.closest("#importBtn")) { openCodeModal("import"); return; }
+  if (t.closest("#cmOk")) { $("codeModal").hidden = true; return; }
+  if (t.closest("#codeModal") && !t.closest(".cm-box")) { $("codeModal").hidden = true; return; }
+  if (t.closest("#cmCopy")) {
+    const ta = $("cmText");
+    let ok = false;
+    ta.select();
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    if (!ok && navigator.clipboard) {
+      navigator.clipboard.writeText(ta.value).then(function () {}, function () {});
+      ok = true;
+    }
+    const msg = $("cmMsg");
+    msg.className = "cm-msg ok";
+    msg.textContent = ok ? "✓ 已复制到剪贴板" : "请手动选中复制";
+    return;
+  }
+  if (t.closest("#cmApply")) {
+    const msg = $("cmMsg");
+    const res = applyProgress($("cmText").value);
+    const good = res.charAt(0) === "✓";
+    msg.className = "cm-msg" + (good ? " ok" : " bad");
+    msg.textContent = res;
+    if (good) setTimeout(function () { $("codeModal").hidden = true; }, 900);
+    return;
+  }
+
   const tab = t.closest("#levelTabs .tab");
   if (tab) {
     level = Number(tab.dataset.level);
@@ -1654,7 +1881,7 @@ document.addEventListener("click", e => {
   }
   if (t.closest("#resetAll")) {
     if (confirm("确定清空两关全部练习进度吗？")) {
-      store.items = {}; store.cur = { 0: 0, 1: 0 };
+      store.items = {}; store.cur = { 0: 0, 1: 0 }; store.last = null;
       save(); cur = 0; level = 0; showList();
     }
   }
@@ -1681,5 +1908,19 @@ setStatus("ready", "READY");
   });
 })();
 </script>
+<!-- 进度码弹窗 -->
+<div class="code-modal" id="codeModal" hidden>
+  <div class="cm-box">
+    <h3 id="cmTitle">备份进度码</h3>
+    <p class="cm-desc" id="cmDesc"></p>
+    <textarea id="cmText" class="mono" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+    <div class="cm-actions">
+      <button class="cm-btn" id="cmCopy">复制</button>
+      <button class="cm-btn main" id="cmApply" hidden>恢复</button>
+      <button class="cm-btn ghost" id="cmOk">关闭</button>
+    </div>
+    <p class="cm-msg" id="cmMsg"></p>
+  </div>
+</div>
 </body>
 </html>
