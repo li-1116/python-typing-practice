@@ -4,8 +4,10 @@
 
 ## 在线访问
 
-- 打字练习：https://python-practice-site.app.workbuddy.host/python-typing.html
-- 教程首页：https://python-practice-site.app.workbuddy.host/
+- 打字练习：https://python-practice-site.app.workbuddy.host/python-typing.html?sharecode=YNFQL6UWEA
+- 教程首页：https://python-practice-site.app.workbuddy.host/?sharecode=YNFQL6UWEA
+
+> 线上站点用分享码控制访问，链接必须带 `?sharecode=` 参数才能打开；站内互跳已自动携带该参数。
 
 ## 页面
 

@@ -1345,5 +1345,20 @@ if (location.search.indexOf("selftest=1") !== -1) runSelfTests().catch(e => {
   document.title = "SELFTEST-FAIL · Python 边学边练";
 });
 </script>
+<script>
+/* 线上分享链接需要 sharecode 参数才能打开，站内跳转时自动带上 */
+(function () {
+  var m = location.search.match(/[?&]sharecode=([^&]+)/);
+  if (!m) return;
+  var sc = m[1];
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    var h = a.getAttribute("href");
+    if (!h || /^(https?:|mailto:|tel:|#)/i.test(h)) return;
+    if (!/\.html?(\?|$)/i.test(h)) return;
+    if (/[?&]sharecode=/.test(h)) return;
+    a.setAttribute("href", h + (h.indexOf("?") > -1 ? "&" : "?") + "sharecode=" + sc);
+  });
+})();
+</script>
 </body>
 </html>
