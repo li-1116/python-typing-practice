@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 边学边练</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --bg: #ffffff;
+    --bg-soft: #f7f8fa;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --text-dim: #6b7280;
+    --ok: #16a34a;
+    --bad: #dc2626;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+  }
+
+  /* ---------- 布局 ---------- */
+  .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+  @media (min-width: 1150px) {
+    .layout { grid-template-columns: 270px minmax(0, 1fr) 360px; }
+  }
+
+  .sidebar {
+    position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+    background: var(--bg-soft);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+  }
+  .brand { font-size: 19px; font-weight: 700; margin: 4px 4px 4px; letter-spacing: .5px; }
+  .brand .py { color: var(--accent); }
+  .brand-sub { font-size: 12px; color: var(--text-dim); margin: 0 4px 14px; }
+
+  .typing-entry {
+    display: block; text-decoration: none; color: var(--text);
+    background: #fff; border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 9px 12px; margin-bottom: 12px;
+    transition: background .15s, box-shadow .15s;
+  }
+  .typing-entry:hover { background: var(--accent-soft); box-shadow: 0 2px 10px rgba(37,99,235,.12); }
+  .typing-entry .te-title { font-size: 13.5px; font-weight: 700; color: var(--accent); }
+  .typing-entry .te-desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; margin-top: 2px; }
+
+  .progress-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; margin-bottom: 14px;
+  }
+  .progress-card .p-label { font-size: 13px; color: var(--text-dim); display: flex; justify-content: space-between; }
+  .progress-card .p-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .progress-card .p-fill { height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .3s; }
+
+  .toc-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px; margin: 2px 0; border-radius: 8px;
+    color: var(--text); text-decoration: none; font-size: 14px;
+    transition: background .15s;
+  }
+  .toc-item:hover { background: var(--accent-soft); }
+  .toc-item .ch-no { color: var(--accent); font-weight: 700; margin-right: 8px; font-size: 13px; }
+  .toc-item .badge {
+    font-size: 11px; color: var(--text-dim);
+    background: #fff; border: 1px solid var(--border);
+    padding: 1px 7px; border-radius: 10px; white-space: nowrap;
+  }
+  .toc-item .badge.done { color: #fff; background: var(--ok); border-color: var(--ok); }
+
+  .hamburger { display: none; }
+
+  /* ---------- 正文 ---------- */
+  .content { padding: 40px 48px 90px; max-width: 860px; }
+  .site-banner {
+    font-size: 26px; font-weight: 800; margin: 0 0 6px;
+  }
+  .site-banner .py { color: var(--accent); }
+  .site-desc { color: var(--text-dim); margin: 0 0 36px; font-size: 14.5px; }
+
+  section.chapter { border-top: 2px solid var(--border); padding-top: 34px; margin-top: 44px; }
+  section.chapter:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+  .ch-title { font-size: 22px; font-weight: 800; margin: 0 0 4px; }
+  .ch-title .ch-no { color: var(--accent); margin-right: 8px; }
+  .ch-goal { color: var(--text-dim); font-size: 14px; margin: 0 0 18px; }
+  .content p { margin: 10px 0; }
+  .content code.inline {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 6px; font-size: 13px;
+    font-family: Consolas, Menlo, "Courier New", monospace;
+  }
+
+  .scene-tag {
+    display: inline-block; font-size: 12.5px; font-weight: 600;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 6px; padding: 2px 10px; margin: 16px 0 8px;
+  }
+
+  /* ---------- 代码块 ---------- */
+  pre.codeblock {
+    background: var(--code-bg); color: var(--code-text);
+    border-radius: var(--radius); padding: 16px 18px;
+    overflow-x: auto; margin: 10px 0 6px;
+    font-family: Consolas, Menlo, "Cascadia Mono", "Courier New", monospace;
+    font-size: 13.5px; line-height: 1.65;
+  }
+  pre.codeblock .tok-kw  { color: #c084fc; font-weight: 600; }
+  pre.codeblock .tok-str { color: #86efac; }
+  pre.codeblock .tok-com { color: #94a3b8; font-style: italic; }
+  pre.codeblock .tok-num { color: #fbbf24; }
+  pre.codeblock .tok-fn  { color: #7dd3fc; }
+  .output-block {
+    background: var(--bg-soft); border: 1px dashed var(--border);
+    border-radius: var(--radius); padding: 10px 16px; margin: 6px 0 12px;
+    font-family: Consolas, Menlo, monospace; font-size: 13.5px; white-space: pre;
+  }
+  .output-label { font-size: 12px; color: var(--text-dim); margin: 10px 0 2px; }
+
+  /* ---------- 练习卡片 ---------- */
+  .exercise {
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; margin: 22px 0;
+    background: #fff;
+  }
+  .exercise.done-all { border-color: var(--ok); }
+  .ex-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ex-badge {
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 2px 10px; border-radius: 6px;
+  }
+  .ex-title { font-weight: 700; font-size: 16px; }
+  .ex-done-chip {
+    margin-left: auto; font-size: 12px; color: var(--ok);
+    border: 1px solid var(--ok); border-radius: 10px; padding: 1px 9px; display: none;
+  }
+  .exercise.done-all .ex-done-chip { display: inline-block; }
+
+  .step { margin: 16px 0 6px; }
+  .step-title { font-weight: 700; font-size: 14.5px; margin-bottom: 6px; }
+  .step-no {
+    display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center;
+    background: var(--accent-soft); color: var(--accent); border-radius: 50%;
+    font-size: 12.5px; font-weight: 700; margin-right: 7px;
+  }
+  .step .ok-mark { color: var(--ok); font-weight: 700; display: none; }
+  .step.passed .ok-mark { display: inline; }
+
+  .read-story { font-size: 14.5px; margin: 6px 0; }
+  .read-points { margin: 6px 0 0; padding-left: 20px; font-size: 14px; color: #374151; }
+  .read-points li { margin: 3px 0; }
+
+  textarea.type-area {
+    width: 100%; min-height: 130px; resize: vertical;
+    background: var(--code-bg); color: var(--code-text);
+    border: 1px solid #334155; border-radius: var(--radius);
+    padding: 12px 14px; font-family: Consolas, Menlo, monospace;
+    font-size: 13.5px; line-height: 1.6; outline: none; tab-size: 4;
+  }
+  textarea.type-area:focus { border-color: var(--accent); }
+
+  .btn {
+    border: none; border-radius: 8px; padding: 7px 18px;
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; margin-top: 10px;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .btn:disabled { opacity: .55; cursor: default; }
+
+  .feedback { font-size: 13.5px; margin-top: 8px; border-radius: 8px; padding: 8px 12px; display: none; }
+  .feedback.ok  { display: block; background: #f0fdf4; color: var(--ok); border: 1px solid #bbf7d0; }
+  .feedback.bad { display: block; background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
+  .feedback.info{ display: block; background: var(--bg-soft); color: #374151; border: 1px solid var(--border); }
+  .feedback .mono { font-family: Consolas, Menlo, monospace; font-size: 12.5px; white-space: pre-wrap; }
+
+  .options { margin: 8px 0 2px; }
+  .options label {
+    display: block; padding: 8px 12px; margin: 5px 0;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; cursor: pointer; transition: border-color .15s;
+  }
+  .options label:hover { border-color: var(--accent); }
+  .options input { margin-right: 9px; accent-color: var(--accent); }
+  .modify-prompt { font-size: 14.5px; background: var(--bg-soft); border-radius: 8px; padding: 10px 14px; margin: 6px 0; }
+  .reveal {
+    display: none; margin-top: 10px; font-size: 14px;
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px;
+  }
+  .reveal.show { display: block; }
+  .reveal b { color: var(--accent); }
+
+  /* ---------- 手机 ---------- */
+  .overlay { display: none; }
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; left: 0; top: 0; width: 280px; z-index: 30;
+      transform: translateX(-105%); transition: transform .25s;
+      box-shadow: 4px 0 18px rgba(0,0,0,.12);
+    }
+    body.nav-open .sidebar { transform: translateX(0); }
+    .hamburger {
+      display: block; position: fixed; z-index: 20;
+      top: 12px; left: 12px;
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      width: 40px; height: 40px; font-size: 19px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .overlay {
+      display: none; position: fixed; inset: 0; z-index: 25;
+      background: rgba(0,0,0,.35);
+    }
+    body.nav-open .overlay { display: block; }
+    .content { padding: 64px 18px 70px; }
+  }
+
+  /* ---------- AI 帮助面板 ---------- */
+  .ai-panel {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    border-left: 1px solid var(--border); background: var(--bg-soft);
+    padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .ai-head { font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+  .ai-close { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text-dim); line-height: 1; }
+  .ai-config label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+  .ai-config input[type=password], .ai-config select, #aiInput {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 9px; font-size: 13px; font-family: inherit; margin-top: 3px; outline: none;
+    background: #fff; color: var(--text);
+  }
+  .ai-config input:focus, #aiInput:focus { border-color: var(--accent); }
+  .ai-hint { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; line-height: 1.6; }
+  .ai-context {
+    font-size: 12px; background: #fff; border: 1px dashed var(--border);
+    border-radius: 8px; padding: 7px 9px; color: var(--text-dim);
+  }
+  .ai-context b { color: var(--accent); }
+  .ai-chat { flex: 0 1 auto; min-height: 60px; max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .ai-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 14px 0; }
+  .ai-msg {
+    border-radius: 10px; padding: 8px 11px; font-size: 13px; line-height: 1.65;
+    white-space: pre-wrap; word-break: break-word; max-width: 96%;
+  }
+  .ai-msg.user { background: var(--accent-soft); align-self: flex-end; }
+  .ai-msg.assistant { background: #fff; border: 1px solid var(--border); align-self: flex-start; }
+  .ai-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ai-presets button {
+    font-size: 12px; padding: 5px 11px; border-radius: 14px; cursor: pointer;
+    border: 1px solid var(--accent); background: #fff; color: var(--accent);
+  }
+  .ai-presets button:hover { background: var(--accent-soft); }
+  #aiInput { min-height: 64px; resize: vertical; }
+  .ai-actions { display: flex; gap: 8px; }
+  .ai-actions .btn { margin-top: 0; flex: 1; padding: 7px 10px; }
+  .ai-status { font-size: 12px; color: var(--bad); min-height: 16px; line-height: 1.5; }
+  .ai-status.info { color: var(--text-dim); }
+
+  .code-wrap { position: relative; }
+  .ask-ai {
+    position: absolute; top: 8px; right: 10px; z-index: 2;
+    font-size: 11px; padding: 2px 9px; border-radius: 12px; cursor: pointer;
+    border: 1px solid #475569; background: rgba(30, 41, 59, .85); color: #cbd5e1;
+  }
+  .ask-ai:hover { color: #fff; border-color: #94a3b8; }
+
+  .ai-fab { display: none; }
+  @media (max-width: 1149px) {
+    .ai-panel {
+      position: fixed; right: 0; top: 0; width: min(370px, 94vw); z-index: 40;
+      transform: translateX(105%); transition: transform .25s;
+      box-shadow: -4px 0 18px rgba(0,0,0,.14);
+    }
+    body.ai-open .ai-panel { transform: translateX(0); }
+    .ai-fab {
+      display: block; position: fixed; right: 14px; bottom: 18px; z-index: 20;
+      width: 54px; height: 54px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--accent); color: #fff; font-size: 14px; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, .4);
+    }
+  }
+
+  #selftest-report { padding: 20px; font-family: monospace; font-size: 13px; background: #fffbe6; }
+</style>
+</head>
+<body>
+<button class="hamburger" id="hamburger" aria-label="打开目录">☰</button>
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="py">Python</span> 边学边练</div>
+    <div class="brand-sub">读代码 · 亲手打 · 先猜再验证</div>
+    <a class="typing-entry" href="./python-typing.html">
+      <div class="te-title">⌨️ 打字练习</div>
+      <div class="te-desc">两关 32 题，含本章讲义原例：照敲代码 → 猜结果 → 逐行看懂</div>
+    </a>
+    <div class="progress-card">
+      <div class="p-label"><span>总进度</span><span id="total-label">0 / 12</span></div>
+      <div class="p-bar"><div class="p-fill" id="total-fill"></div></div>
+    </div>
+    <nav id="toc"></nav>
+  </aside>
+
+  <main class="content" id="content">
+    <h1 class="site-banner"><span class="py">Python</span> 边学边练</h1>
+    <p class="site-desc">一个可以双击打开的本地练功房：每章先读一小段知识，再过四关——读代码、亲手打、先猜再看解析、改一点试试。进度会自动保存在这个浏览器里。想深入理解？点代码块右上角的「问 AI」（需自备百炼 Key，不填也不影响阅读练习）。</p>
+    <p style="margin:-18px 0 32px"><a class="typing-entry" href="./python-typing.html" style="display:inline-block;padding:8px 16px"><span class="te-title">⌨️ 打开「Python 代码打字练习」</span><span class="te-desc" style="display:block">两关 32 题：基础 18 题 + 讲义原例 14 题</span></a></p>
+    <div id="chapters"></div>
+  </main>
+
+  <aside class="ai-panel" id="aiPanel">
+    <div class="ai-head">AI 帮助<button class="ai-close" id="aiClose" aria-label="关闭">×</button></div>
+    <div class="ai-config">
+      <label>百炼 API Key
+        <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
+      </label>
+      <label>模型
+        <select id="aiModel">
+          <option value="qwen-turbo">qwen-turbo（便宜）</option>
+          <option value="qwen-plus">qwen-plus</option>
+          <option value="qwen-max">qwen-max（最强）</option>
+        </select>
+      </label>
+      <div class="ai-hint">Key 只保存在你自己浏览器里，发送时会连同当前代码一起传给百炼，调用产生你账号的费用。没有 Key 也完全不影响阅读和练习。去 <a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">百炼控制台</a> 申请。</div>
+    </div>
+    <div class="ai-context" id="aiContext">还没有选择代码：点击任意代码块右上角的「问 AI」。</div>
+    <div class="ai-chat" id="aiChat"><div class="ai-empty">提问后会显示在这里</div></div>
+    <div class="ai-presets">
+      <button data-preset="explain">讲解这段代码</button>
+      <button data-preset="edge">检查边界情况</button>
+      <button data-preset="practice">给我练习</button>
+    </div>
+    <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？"></textarea>
+    <div class="ai-actions">
+      <button class="btn" id="aiSend">发送问题</button>
+      <button class="btn ghost" id="aiNew">新对话</button>
+    </div>
+    <div class="ai-status" id="aiStatus"></div>
+  </aside>
+</div>
+
+<button class="ai-fab" id="aiFab" aria-label="打开AI帮助">AI 帮助</button>
+
+<div id="selftest-report" style="display:none"></div>
+
+<script>
+/* =========================================================
+   数据：6 章 × 2 练习（内容原创）
+   ========================================================= */
+const CHAPTERS = [
+{
+  num: 1, title: "变量与赋值",
+  goal: "本章目标：会给数据起名字、换名字，并理解 = 到底做了什么。",
+  intro: [
+    "写程序的第一步，是学会把一个值<b>存起来、反复用</b>。变量就是给值起的名字：写 <code class='inline'>price = 12</code>，Python 就把 12 存起来，并把名字 price 指向它。",
+    "注意 <code class='inline'>=</code> 不是数学里的“等于”，而是<b>赋值</b>：先算出右边的值，再把它绑到左边的名字上。判断相等地用 <code class='inline'>==</code>，这是后面章节的主角。",
+    "名字可以由字母、数字、下划线组成，但不能以数字开头，也区分大小写：<code class='inline'>Price</code> 和 <code class='inline'>price</code> 是两个不同的变量。",
+    "对同一个变量再次赋值，旧值就被<b>覆盖</b>了——就像把便利贴上的数字擦掉重写。"
+  ],
+  example: {
+    scene: "日常场景：奶茶店记账",
+    code: `# 今天卖出的奶茶账本
+price = 12        # 一杯奶茶 12 元
+count = 3         # 卖出 3 杯
+total = price * count
+print(total)`,
+    output: "36",
+    note: "改一个变量（比如 price 改成 15），重新运行后 total 会自动跟着变——这就是把数据存进变量的好处。"
+  },
+  exercises: [
+    {
+      title: "算一杯果汁的总价",
+      read: {
+        story: "这段代码想算“4 杯 8 元的果汁一共要付多少钱”，并把结果打印出来。",
+        points: [
+          "<code class='inline'>=</code> 是赋值：先把右边的 8 算出来，再存进名字 juice。",
+          "<code class='inline'>*</code> 是乘号；<code class='inline'>#</code> 后面是注释，程序不会执行它。",
+          "最后一行 <code class='inline'>print(money)</code> 打印的是 money 里存的值，不是“money”这个词。"
+        ]
+      },
+      target: `juice = 8
+cups = 4
+money = juice * cups
+print(money)`,
+      guess: {
+        q: "先猜一猜：运行后屏幕上输出什么？",
+        options: ["money", "12", "32", "报错"],
+        answer: 2,
+        reveal: "<b>答案：32。</b>执行顺序：① juice = 8 → ② cups = 4 → ③ money = 8 * 4 = 32 → ④ print(32)。print 打印的是变量的值。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 2 行的 4 改成 5（买 5 杯），再运行，输出是多少？",
+        options: ["40", "36", "45", "32"],
+        answer: 0,
+        reveal: "<b>答案：40。</b>cups 变成 5 后，money = 8 * 5 = 40。变量一改，依赖它的计算全部跟着更新。"
+      }
+    },
+    {
+      title: "给分数加 5 分",
+      read: {
+        story: "老师给小安的分数加 5 分，这段代码演示了“自己给自己赋值”。",
+        points: [
+          "第 2 行先算右边的 score + 5（即 90 + 5 = 95），再把结果存回 score。",
+          "同一个名字赋两次值不报错，旧值 90 被<b>覆盖</b>。",
+          "这里的 + 是加法；如果 score 存的是文字，+ 的含义就完全不同（第 2 章会踩这个坑）。"
+        ]
+      },
+      target: `score = 90
+score = score + 5
+print(score)`,
+      guess: {
+        q: "先猜一猜：屏幕上输出什么？",
+        options: ["90", "95", "5", "报错"],
+        answer: 1,
+        reveal: "<b>答案：95。</b>执行顺序：① score = 90 → ② 右边算出 95 并覆盖 score → ③ 打印 95。程序从上到下一行一行执行。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 2 行改成 score = score - 20，输出是多少？",
+        options: ["70", "75", "-20", "110"],
+        answer: 0,
+        reveal: "<b>答案：70。</b>90 - 20 = 70。- 也一样是“先算右边、再覆盖左边”。"
+      }
+    }
+  ]
+},
+{
+  num: 2, title: "print() 与基本类型",
+  goal: "本章目标：分清数字和文字两种“长得像”的值，会用 print 把话说出来。",
+  intro: [
+    "值有类型：<code class='inline'>12</code> 是整数（int），<code class='inline'>3.5</code> 是小数（float），<code class='inline'>\"12\"</code> 是<b>字符串</b>（str）——只要套上引号，数字就变成了文字。",
+    "<code class='inline'>print()</code> 负责把内容显示到屏幕上。它可以一次打印多个东西，中间用逗号隔开，屏幕上会以空格分开。",
+    "f-string 是拼字符串的利器：在引号前加 <code class='inline'>f</code>，再用 <code class='inline'>{}</code> 包住变量，变量的值会被自动填进去。",
+    "最容易踩的坑：字符串和数字不能直接用 <code class='inline'>+</code> 相加——文字加数字，Python 会直接报错。"
+  ],
+  example: {
+    scene: "日常场景：给同学发成绩通知",
+    code: `name = "小舟"
+score = 92
+print("成绩通知：")
+print(name, "考了", score, "分")
+print(f"{name} 的分数是 {score}")`,
+    output: "成绩通知：\n小舟 考了 92 分\n小舟 的分数是 92",
+    note: "第三种写法（f-string）最灵活，{} 里的内容会先算出来，再拼进文字里。"
+  },
+  exercises: [
+    {
+      title: "字符串乘法的小惊喜",
+      read: {
+        story: "这段代码看起来想算乘法，其实展示了“字符串 × 整数”的真实行为。",
+        points: [
+          "<code class='inline'>\"3\"</code> 带引号，是字符串；不带引号的 3 才是数字。",
+          "字符串 * 整数 的意思是<b>重复拼接</b>，不是数学乘法。",
+          "print 会把结果原样打印出来，不会加引号。"
+        ]
+      },
+      target: `apple = "3"
+box = 2
+print(apple * box)`,
+      guess: {
+        q: "先猜一猜：输出是什么？",
+        options: ["6", "33", "3 3", "报错"],
+        answer: 1,
+        reveal: "<b>答案：33。</b>执行顺序：① \"3\" 是字符串 → ② 字符串 * 2 = 把 \"3\" 重复两遍，得到 \"33\" → ③ 打印 33。加引号后 3 就只是文字了。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 1 行改成 apple = 3（去掉引号），输出是多少？",
+        options: ["33", "6", "报错", "3 3"],
+        answer: 1,
+        reveal: "<b>答案：6。</b>去掉引号后 apple 是数字 3，3 * 2 = 6。一对引号之差，含义完全不同。"
+      }
+    },
+    {
+      title: "过一年长一岁（会报错的那种）",
+      read: {
+        story: "这段代码想算“16 岁过一年后是几岁”，但它会当场报错——这是新手最常见的报错之一。",
+        points: [
+          "<code class='inline'>\"16\"</code> 是字符串；字符串的 + 表示<b>拼接</b>（把文字接在一起）。",
+          "字符串 + 数字 类型不匹配，Python 会抛出 <code class='inline'>TypeError</code> 并停止运行。",
+          "报错信息会指出出错的行号，别慌，先看行号。"
+        ]
+      },
+      target: `age = "16"
+print(age + 1)`,
+      guess: {
+        q: "先猜一猜：运行结果是什么？",
+        options: ["17", "161", "报错（TypeError）", "16 1"],
+        answer: 2,
+        reveal: "<b>答案：报错。</b>执行顺序：① age = \"16\" 是字符串 → ② age + 1 想把文字和数字相加 → ③ Python 抛出 TypeError，程序在这一行停止。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 1 行改成 age = 16（去掉引号），现在输出是什么？",
+        options: ["161", "17", "还是报错", "16"],
+        answer: 1,
+        reveal: "<b>答案：17。</b>age 变成数字后，16 + 1 = 17。想参与数学运算的值，别给它穿引号。"
+      }
+    }
+  ]
+},
+{
+  num: 3, title: "if / else 条件",
+  goal: "本章目标：让程序学会“看情况办事”，并看懂缩进如何决定谁属于哪一块。",
+  intro: [
+    "<code class='inline'>if</code> 后面写一个条件，条件成立（True）就执行它下面<b>缩进的代码块</b>；不成立就跳到 <code class='inline'>else</code>。",
+    "冒号 <code class='inline'>:</code> 表示“代码块要开始了”，下一行必须缩进（惯例是 4 个空格）。<b>缩进就是 Python 的花括号</b>，谁缩进谁就属于那一块。",
+    "常用的比较符号：<code class='inline'>&gt;</code>、<code class='inline'>&lt;</code>、<code class='inline'>&gt;=</code>（大于等于）、<code class='inline'>&lt;=</code>、<code class='inline'>==</code>（相等）、<code class='inline'>!=</code>（不等）。",
+    "<code class='inline'>elif</code> 是“否则如果”。一串 if / elif / else <b>只会走第一个满足的分支</b>，剩下的全部跳过，所以条件的先后顺序本身就是规则的一部分。"
+  ],
+  example: {
+    scene: "日常场景：食堂满减",
+    code: `total = 28
+if total >= 30:
+    print("满 30 减 5，已满足")
+    pay = total - 5
+else:
+    print("还差", 30 - total, "元可以满减")
+    pay = total
+print("应付", pay, "元")`,
+    output: "还差 2 元可以满减\n应付 28 元",
+    note: "28 >= 30 不成立，走 else 分支。注意 if 和 else 里各缩进两行，最后一句 print 不缩进，所以无论走哪个分支它都会执行。"
+  },
+  exercises: [
+    {
+      title: "奶茶买一送一",
+      read: {
+        story: "这段代码判断一杯奶茶能不能参加“买一送一”。",
+        points: [
+          "<code class='inline'>&gt;</code> 是“大于”。20 > 18 成立，结果是 True。",
+          "if 那行末尾的冒号表示代码块开始；下一行缩进 4 格，属于 if 内部。",
+          "else 处理“条件不成立”的情况，两个分支<b>必走其一，不会都走</b>。"
+        ]
+      },
+      target: `milk_tea = 20
+if milk_tea > 18:
+    print("买一送一")
+else:
+    print("原价购买")`,
+      guess: {
+        q: "先猜一猜：输出是哪个？",
+        options: ["买一送一", "原价购买", "两行都输出", "报错"],
+        answer: 0,
+        reveal: "<b>答案：买一送一。</b>执行顺序：① milk_tea = 20 → ② 判断 20 > 18，成立 → ③ 执行 if 内缩进的那一行；else 分支被跳过。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 1 行改成 milk_tea = 15，输出是哪个？",
+        options: ["买一送一", "原价购买", "两行都输出", "报错"],
+        answer: 1,
+        reveal: "<b>答案：原价购买。</b>15 > 18 不成立，if 内的代码被跳过，走 else。条件变 false，分支就换边。"
+      }
+    },
+    {
+      title: "按温度穿衣服",
+      read: {
+        story: "这段代码根据气温推荐穿什么，用了 if / elif / else 三连。",
+        points: [
+          "<code class='inline'>elif</code> = “否则如果”，只能出现在 if 之后。",
+          "三个分支<b>只会执行一个</b>：从上往下找第一个成立的条件，找到就跳过其余所有分支。",
+          "<code class='inline'>&gt;=</code> 是“大于等于”，25 度也算“穿短袖”。"
+        ]
+      },
+      target: `temp = 9
+if temp >= 25:
+    print("穿短袖")
+elif temp >= 10:
+    print("穿外套")
+else:
+    print("穿羽绒服")`,
+      guess: {
+        q: "temp 是 9 度，输出是哪个？",
+        options: ["穿短袖", "穿外套", "穿羽绒服", "三行都输出"],
+        answer: 2,
+        reveal: "<b>答案：穿羽绒服。</b>执行顺序：① 9 >= 25 不成立 → ② 9 >= 10 不成立 → ③ 走 else。前两个条件都 false，才轮到 else。"
+      },
+      modify: {
+        prompt: "改一点试试：把第 1 行改成 temp = 25，输出是哪个？",
+        options: ["穿短袖", "穿外套", "穿羽绒服", "报错"],
+        answer: 0,
+        reveal: "<b>答案：穿短袖。</b>25 >= 25 成立（>= 包含等于！），第一个分支直接命中，后面连看都不看。"
+      }
+    }
+  ]
+},
+{
+  num: 4, title: "列表",
+  goal: "本章目标：用一个变量装下一串东西，会按位置取、按位置改、往末尾加。",
+  intro: [
+    "列表用方括号把一组值装在一起：<code class='inline'>cart = [\"肥皂\", \"毛巾\"]</code>。一个变量，管一整串数据。",
+    "取元素用<b>索引</b>：<code class='inline'>cart[0]</code> 是第一项。索引从 0 开始数——这是编程世界的通用习惯，数错一位是最常见的 bug。",
+    "<code class='inline'>append(x)</code> 把 x 加到末尾；<code class='inline'>len(cart)</code> 数一共有几项；<code class='inline'>cart[1] = \"酸奶\"</code> 直接替换某一位置上的值。",
+    "索引越界（比如只有 3 项却取 [3]）会报 <code class='inline'>IndexError</code>。"
+  ],
+  example: {
+    scene: "日常场景：出门前的购物清单",
+    code: `cart = ["面包", "牛奶", "鸡蛋"]
+cart.append("香蕉")        # 想起来还得买香蕉
+print(len(cart))           # 一共几样？
+print(cart[0])             # 第一项是什么
+cart[1] = "酸奶"           # 牛奶喝完了，换酸奶
+print(cart)`,
+    output: "4\n面包\n['面包', '酸奶', '鸡蛋', '香蕉']",
+    note: "append 之后列表变长了；给 cart[1] 赋新值，原位置的“牛奶”就被换掉了。"
+  },
+  exercises: [
+    {
+      title: "取第二个水果",
+      read: {
+        story: "这段代码想从水果清单里取出第二样打印出来。",
+        points: [
+          "索引从 <b>0</b> 开始：[0] 是第一项，[1] 才是第二项。",
+          "方括号有两个用途：创建列表用 <code class='inline'>[\"苹果\", ...]</code>，取元素用 <code class='inline'>fruits[1]</code>。",
+          "打印列表元素时只显示值本身，不带引号。"
+        ]
+      },
+      target: `fruits = ["苹果", "香蕉", "橘子"]
+print(fruits[1])`,
+      guess: {
+        q: "先猜一猜：输出是哪个？",
+        options: ["苹果", "香蕉", "橘子", "报错"],
+        answer: 1,
+        reveal: "<b>答案：香蕉。</b>执行顺序：① 创建三个元素的列表，位置编号是 0、1、2 → ② fruits[1] 取到第二项“香蕉” → ③ 打印。想取第一个要写 fruits[0]。"
+      },
+      modify: {
+        prompt: "改一点试试：把 fruits[1] 改成 fruits[3]，运行结果是什么？",
+        options: ["橘子", "苹果", "打印空", "报错（IndexError）"],
+        answer: 3,
+        reveal: "<b>答案：报错。</b>列表只有 3 项，编号到 2 为止。[3] 越界，Python 抛出 IndexError。"
+      }
+    },
+    {
+      title: "从空清单开始采购",
+      read: {
+        story: "这段代码从一张空清单开始，一件一件加东西，再把第一件换掉。",
+        points: [
+          "<code class='inline'>[]</code> 创建空列表；<code class='inline'>append()</code> 把东西加到<b>末尾</b>。",
+          "<code class='inline'>cart[0] = \"香皂\"</code> 把第 0 号位置的值整个换掉。",
+          "<code class='inline'>len(cart)</code> 返回当前有几项；print 可以一次打印多个值，用逗号隔开。"
+        ]
+      },
+      target: `cart = []
+cart.append("肥皂")
+cart.append("毛巾")
+cart[0] = "香皂"
+print(len(cart), cart)`,
+      guess: {
+        q: "先猜一猜：最后一行输出什么？",
+        options: ["2 ['香皂', '毛巾']", "2 ['肥皂', '毛巾']", "3 ['香皂', '毛巾']", "报错"],
+        answer: 0,
+        reveal: "<b>答案：2 ['香皂', '毛巾']。</b>执行顺序：① 空列表 → ② append 肥皂（1 项）→ ③ append 毛巾（2 项）→ ④ 第 0 项肥皂被换成香皂 → ⑤ len 是 2，打印整个列表。"
+      },
+      modify: {
+        prompt: "改一点试试：在最后一行之前再加一句 cart.append(\"牙刷\")，len(cart) 会变成几？",
+        options: ["2", "3", "4", "1"],
+        answer: 1,
+        reveal: "<b>答案：3。</b>append 总在末尾追加，加一件就多一项：香皂、毛巾、牙刷。"
+      }
+    }
+  ]
+},
+{
+  num: 5, title: "for 循环",
+  goal: "本章目标：让同一件事自动重复 N 次，理解循环变量和“不含结尾”的 range。",
+  intro: [
+    "<code class='inline'>for x in 列表:</code> 会把列表里的元素一个一个拿出来，每拿一个执行一遍缩进的循环体。x 叫<b>循环变量</b>，每一轮它都换成当前元素。",
+    "想按次数循环用 <code class='inline'>range(a, b)</code>：它生成 a, a+1, … 直到 <b>b-1</b>，<b>不包含 b</b>。所以 range(1, 4) 是 1、2、3。",
+    "循环体靠缩进识别：缩进的行每轮都执行；<b>不缩进的行在循环结束后只执行一次</b>。",
+    "循环里可以再嵌套 if，用来“边遍历边筛选”。"
+  ],
+  example: {
+    scene: "日常场景：背单词打卡",
+    code: `words = ["apple", "happy", "sunny"]
+for w in words:
+    print("今天背:", w)
+print("打卡完成")`,
+    output: "今天背: apple\n今天背: happy\n今天背: sunny\n打卡完成",
+    note: "前几行缩进了，所以执行 3 轮；最后一句没缩进，循环结束后只跑一次。"
+  },
+  exercises: [
+    {
+      title: "三天一共背了几个单词",
+      read: {
+        story: "第 1 天背 1 个、第 2 天背 2 个……这段代码算 3 天累计背了多少个。",
+        points: [
+          "<code class='inline'>range(1, days + 1)</code>：因为 range 不含结尾，想要 1 到 3 就要写到 4，所以写 days + 1。",
+          "循环体里 <code class='inline'>total = total + d</code> 每轮把 d 累加进 total，这是最经典的“累计器”写法。",
+          "最后的 print 没缩进，所以只在循环结束后执行一次。"
+        ]
+      },
+      target: `days = 3
+total = 0
+for d in range(1, days + 1):
+    total = total + d
+print(total)`,
+      guess: {
+        q: "先猜一猜：输出是哪个？",
+        options: ["3", "6", "10", "报错"],
+        answer: 1,
+        reveal: "<b>答案：6。</b>执行顺序：① total = 0 → ② d 依次取 1、2、3，total 依次变成 1、3、6 → ③ 循环结束，打印 6。1 + 2 + 3 = 6。"
+      },
+      modify: {
+        prompt: "改一点试试：把 days = 3 改成 days = 5，输出是多少？",
+        options: ["10", "15", "5", "21"],
+        answer: 1,
+        reveal: "<b>答案：15。</b>range(1, 6) 生成 1 到 5，1+2+3+4+5 = 15。改一个数，循环次数自动跟着变。"
+      }
+    },
+    {
+      title: "挑出优秀的分数",
+      read: {
+        story: "这段代码把分数列表过一遍，只把 80 分以上的打印成“优秀”。",
+        points: [
+          "循环里嵌套了 if：if 那两行缩进得比 for 更深，属于循环体内部。",
+          "每个分数都会被 if 检查一次；不满足条件的元素<b>什么都不做</b>，直接进入下一轮。",
+          "最后的 print 缩进最浅，在循环全部结束后执行一次。"
+        ]
+      },
+      target: `scores = [90, 60, 75]
+for s in scores:
+    if s >= 80:
+        print(s, "优秀")
+print("检查完毕")`,
+      guess: {
+        q: "先猜一猜：屏幕上一共输出几行、内容是什么？",
+        options: ["两行：90 优秀 / 检查完毕", "三行：90 优秀 / 75 优秀 / 检查完毕", "四行：每个分数都输出", "报错"],
+        answer: 0,
+        reveal: "<b>答案：两行。</b>执行顺序：① s = 90，90 >= 80 成立，打印“90 优秀” → ② s = 60，不成立，跳过 → ③ s = 75，75 >= 80 不成立，跳过 → ④ 循环结束，打印“检查完毕”。只有 90 分过了线。"
+      },
+      modify: {
+        prompt: "改一点试试：把 if 的条件改成 s >= 70，现在输出几行？",
+        options: ["一行", "两行", "三行（90 优秀 / 75 优秀 / 检查完毕）", "报错"],
+        answer: 2,
+        reveal: "<b>答案：三行。</b>90 和 75 都满足 s >= 70，各打印一行“优秀”；60 依旧被跳过；最后打印“检查完毕”。比较线一改，筛出来的结果就变了。"
+      }
+    }
+  ]
+},
+{
+  num: 6, title: "函数与 return",
+  goal: "本章目标：把一段常用步骤打包成函数，分清“打印出来”和“交回结果”是两码事。",
+  intro: [
+    "<code class='inline'>def 函数名(参数):</code> 定义一个函数——相当于把一段步骤装进盒子，<b>定义时不执行</b>，调用时才运行。",
+    "调用写成 <code class='inline'>函数名(值)</code>：值会传给参数名，函数体开始执行；遇到 <code class='inline'>return</code> 就把结果<b>交回给调用处</b>并结束本次调用。",
+    "<code class='inline'>print</code> 只是“显示在屏幕上”，交不回结果；<code class='inline'>return</code> 才是把算好的值递出来。没有 return 的函数，返回值是 <code class='inline'>None</code>（表示“什么都没有”）。",
+    "同一个函数可以反复调用、传不同的值——这就是“打包复用”的意义。"
+  ],
+  example: {
+    scene: "日常场景：打车费计算器",
+    code: `def taxi_fee(km):
+    # 3 公里内收起步价 10 元，超出部分每公里 2 元
+    if km <= 3:
+        return 10
+    return 10 + (km - 3) * 2
+
+fee = taxi_fee(8)
+print(fee)`,
+    output: "20",
+    note: "taxi_fee(8)：8 > 3，所以 return 10 + 5 * 2 = 20。函数算好的值通过 return 交给 fee，再由 print 显示。"
+  },
+  exercises: [
+    {
+      title: "翻倍再加一",
+      read: {
+        story: "这段代码先把 5 翻倍，再把结果加 1 打印出来。",
+        points: [
+          "<code class='inline'>def double(n):</code> 定义函数，n 是参数——一个等调用时才填上真值的占位名字。",
+          "<code class='inline'>double(5)</code> 调用函数：n = 5，函数体执行到 return，把 10 <b>交回</b>调用处，赋给 x。",
+          "return 之后函数立刻结束；最后 print(x + 1) 用的是 x 里存着的 10。"
+        ]
+      },
+      target: `def double(n):
+    return n * 2
+
+x = double(5)
+print(x + 1)`,
+      guess: {
+        q: "先猜一猜：输出是哪个？",
+        options: ["11", "10", "6", "报错"],
+        answer: 0,
+        reveal: "<b>答案：11。</b>执行顺序：① 定义 double（还没执行）→ ② 调用 double(5)，n = 5，return 10 → ③ x = 10 → ④ print(10 + 1)，输出 11。"
+      },
+      modify: {
+        prompt: "改一点试试：把 return n * 2 改成 return n + 2，输出是多少？",
+        options: ["11", "8", "7", "12"],
+        answer: 1,
+        reveal: "<b>答案：8。</b>double(5) 现在返回 5 + 2 = 7，x = 7，print(7 + 1) 输出 8。return 什么，调用处就拿到什么。"
+      }
+    },
+    {
+      title: "print 和 return，差一个字差很多",
+      read: {
+        story: "这个函数看起来“给了”5，其实只是把 5 印在屏幕上，什么都没交回来。",
+        points: [
+          "函数里只有 print，没有 return：调用后返回值是 <code class='inline'>None</code>。",
+          "<code class='inline'>y = add_one(4)</code>：屏幕先打出 5，但 y 接住的是 None，不是 5。",
+          "最后一行 print(y) 会把 None 显示出来——屏幕上出现 None，多半就是忘了 return。"
+        ]
+      },
+      target: `def add_one(a):
+    print(a + 1)
+
+y = add_one(4)
+print(y)`,
+      guess: {
+        q: "先猜一猜：屏幕上输出几行、各是什么？",
+        options: ["两行：5 / None", "两行：5 / 5", "一行：5", "报错"],
+        answer: 0,
+        reveal: "<b>答案：两行 5 和 None。</b>执行顺序：① 调用 add_one(4)，函数内部 print(5)，屏幕出现第一行 5 → ② 函数没有 return，返回 None → ③ y = None → ④ print(None)，屏幕出现第二行 None。"
+      },
+      modify: {
+        prompt: "改一点试试：把函数体改成 return a + 1（替换掉原来的 print），重新运行，屏幕输出什么？",
+        options: ["一行：5", "两行：5 / None", "一行：None", "两行：5 / 5"],
+        answer: 0,
+        reveal: "<b>答案：一行 5。</b>改成 return 后，函数不再自己打印，而是把 5 交回给 y；只有最后一行 print(y) 打印了一次 5。想让调用者拿到结果，用 return；想自己显示，才用 print。"
+      }
+    }
+  ]
+}
+];
+
+/* =========================================================
+   工具：高亮 / 归一化 / 找差异
+   ========================================================= */
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+const KW = /^(def|return|if|elif|else|for|while|in|and|or|not|is|None|True|False|import|from|break|continue|pass)$/;
+const FN = /^(print|len|range|int|str|float|input|append|list)$/;
+function highlight(code) {
+  const re = /(#[^\n]*)|(f?"(?:\\.|[^"\\\n])*"|f?'(?:\\.|[^'\\\n])*')|([A-Za-z_][A-Za-z0-9_]*)|(\d+(?:\.\d+)?)/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(code)) !== null) {
+    out += escapeHtml(code.slice(last, m.index));
+    const tok = m[0], t = escapeHtml(tok);
+    if (m[1]) out += `<span class="tok-com">${t}</span>`;
+    else if (m[2]) out += `<span class="tok-str">${t}</span>`;
+    else if (m[3]) {
+      if (KW.test(tok)) out += `<span class="tok-kw">${t}</span>`;
+      else if (FN.test(tok)) out += `<span class="tok-fn">${t}</span>`;
+      else out += t;
+    }
+    else out += `<span class="tok-num">${t}</span>`;
+    last = m.index + tok.length;
+  }
+  out += escapeHtml(code.slice(last));
+  return out;
+}
+
+function normalizeInput(s) {
+  let lines = String(s).replace(/\r\n?/g, "\n").replace(/\t/g, "    ").split("\n");
+  lines = lines.map(l => l.replace(/[ \u00a0]+$/, ""));
+  while (lines.length && lines[lines.length - 1] === "") lines.pop();
+  return lines;
+}
+function showChar(ch) {
+  if (ch === undefined || ch === null) return "（没有字符了）";
+  if (ch === " ") return "空格";
+  return "「" + ch + "」";
+}
+function firstDiff(target, input) {
+  const t = normalizeInput(target), u = normalizeInput(input);
+  const n = Math.max(t.length, u.length);
+  for (let i = 0; i < n; i++) {
+    const tl = t[i], ul = u[i];
+    if (tl === undefined) return { pass: false, msg: `第 ${i + 1} 行是多余的：目标代码一共只有 ${t.length} 行，可以删掉它。` };
+    if (ul === undefined) return { pass: false, msg: `缺少第 ${i + 1} 行，内容应为：\n${tl}` };
+    if (tl !== ul) {
+      let c = 0;
+      while (c < tl.length && c < ul.length && tl[c] === ul[c]) c++;
+      let msg;
+      if (ul.length < tl.length && c === ul.length) {
+        msg = `第 ${i + 1} 行少打了内容：这里还应有 ${showChar(tl[c])} 及之后的部分。`;
+      } else {
+        msg = `第 ${i + 1} 行第 ${c + 1} 个字符不同：这里应为 ${showChar(tl[c])}，你输入的是 ${showChar(ul[c])}。`;
+      }
+      msg += `\n目标行：${tl}\n你输入：${ul}`;
+      return { pass: false, msg };
+    }
+  }
+  return { pass: true, msg: "" };
+}
+
+/* =========================================================
+   渲染
+   ========================================================= */
+const FLAT = [];  // {ch, ei, ex, id}
+CHAPTERS.forEach((ch, ci) => ch.exercises.forEach((ex, ei) => FLAT.push({ ch, ci, ei, ex, id: ci + "-" + ei })));
+
+const state = loadState();
+function loadState() {
+  try { return JSON.parse(localStorage.getItem("python-practice-progress-v1")) || {}; }
+  catch (e) { return {}; }
+}
+function saveState() {
+  try { localStorage.setItem("python-practice-progress-v1", JSON.stringify(state)); return true; }
+  catch (e) { return false; }
+}
+
+function buildToc() {
+  const toc = document.getElementById("toc");
+  toc.innerHTML = CHAPTERS.map(ch =>
+    `<a class="toc-item" href="#ch${ch.num}"><span><span class="ch-no">第${ch.num}章</span>${ch.title}</span><span class="badge" data-ch="${ch.num}">0/2</span></a>`
+  ).join("");
+}
+
+function buildChapters() {
+  const root = document.getElementById("chapters");
+  root.innerHTML = CHAPTERS.map(ch => {
+    const exHtml = ch.exercises.map((ex, ei) => renderExercise(ch.num, ei, ex)).join("");
+    return `
+    <section class="chapter" id="ch${ch.num}">
+      <h2 class="ch-title"><span class="ch-no">第 ${ch.num} 章</span>${ch.title}</h2>
+      <p class="ch-goal">${ch.goal}</p>
+      ${ch.intro.map(p => `<p>${p}</p>`).join("")}
+      <div class="scene-tag">${ch.example.scene}</div>
+      <pre class="codeblock">${highlight(ch.example.code)}</pre>
+      <div class="output-label">运行结果：</div>
+      <div class="output-block">${escapeHtml(ch.example.output)}</div>
+      <p style="font-size:14px;color:#374151">${ch.example.note}</p>
+      ${exHtml}
+    </section>`;
+  }).join("");
+}
+
+function renderExercise(chNum, ei, ex) {
+  const flatIdx = FLAT.findIndex(f => f.ch.num === chNum && f.ei === ei);
+  const label = `练习 ${chNum}.${ei + 1}`;
+  return `
+  <div class="exercise" id="ex-${flatIdx}" data-flat="${flatIdx}">
+    <div class="ex-head">
+      <span class="ex-badge">${label}</span>
+      <span class="ex-title">${ex.title}</span>
+      <span class="ex-done-chip">已完成 ✓</span>
+    </div>
+
+    <div class="step" data-step="1">
+      <div class="step-title"><span class="step-no">1</span>读代码 <span class="ok-mark">✓</span></div>
+      <p class="read-story">${ex.read.story}</p>
+      <ul class="read-points">${ex.read.points.map(p => `<li>${p}</li>`).join("")}</ul>
+      <pre class="codeblock">${highlight(ex.target)}</pre>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="step-title"><span class="step-no">2</span>亲手打一遍 <span class="ok-mark">✓</span></div>
+      <textarea class="type-area" data-type="${flatIdx}" spellcheck="false" placeholder="照着上面的代码，一行一行敲进来（支持回车、退格和缩进）"></textarea>
+      <br><button class="btn" data-act="check-type" data-idx="${flatIdx}">检查输入</button>
+      <div class="feedback" data-fb="type-${flatIdx}"></div>
+    </div>
+
+    <div class="step" data-step="3">
+      <div class="step-title"><span class="step-no">3</span>先猜，再看解析 <span class="ok-mark">✓</span></div>
+      <p class="read-story">${ex.guess.q}</p>
+      <div class="options" data-quiz="${flatIdx}">
+        ${ex.guess.options.map((o, i) => `<label><input type="radio" name="quiz-${flatIdx}" value="${i}">${escapeHtml(o)}</label>`).join("")}
+      </div>
+      <button class="btn" data-act="submit-quiz" data-idx="${flatIdx}">提交答案</button>
+      <div class="feedback" data-fb="quiz-${flatIdx}"></div>
+      <div class="reveal" data-reveal="quiz-${flatIdx}">${ex.guess.reveal}</div>
+    </div>
+
+    <div class="step" data-step="4">
+      <div class="step-title"><span class="step-no">4</span>改一点试试 <span class="ok-mark">✓</span></div>
+      <div class="modify-prompt">${ex.modify.prompt}</div>
+      <p class="read-story">${ex.modify.q}</p>
+      <div class="options" data-modify="${flatIdx}">
+        ${ex.modify.options.map((o, i) => `<label><input type="radio" name="modify-${flatIdx}" value="${i}">${escapeHtml(o)}</label>`).join("")
+  }
+      </div>
+      <button class="btn" data-act="submit-modify" data-idx="${flatIdx}">检查答案</button>
+      <div class="feedback" data-fb="modify-${flatIdx}"></div>
+      <div class="reveal" data-reveal="modify-${flatIdx}">${ex.modify.reveal}</div>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   交互逻辑（供按钮与自检共用）
+   ========================================================= */
+function checkTyping(idx, text) {
+  const ex = FLAT[idx];
+  const ta = document.querySelector(`textarea[data-type="${idx}"]`);
+  const val = (text !== undefined) ? text : ta.value;
+  const res = firstDiff(ex.ex.target, val);
+  const fb = document.querySelector(`[data-fb="type-${idx}"]`);
+  const step = document.querySelector(`#ex-${idx} [data-step="2"]`);
+  if (res.pass) {
+    fb.className = "feedback ok";
+    fb.textContent = "✓ 输入和目标代码完全一致（已忽略行尾空格和末尾空行）。";
+    step.classList.add("passed");
+    state[ex.id] = state[ex.id] || {};
+    state[ex.id].typed = true;
+    saveState(); refreshProgress();
+  } else {
+    fb.className = "feedback bad";
+    fb.textContent = "✗ 还不一样，先改第一个不同的地方：\n" + res.msg;
+    step.classList.remove("passed");
+    if (state[ex.id]) { state[ex.id].typed = false; saveState(); refreshProgress(); }
+  }
+  return res;
+}
+
+function answerQuiz(idx, optIndex, kind) {
+  const ex = FLAT[idx].ex;
+  const isQuiz = kind === "quiz";
+  const data = isQuiz ? ex.guess : ex.modify;
+  const correct = optIndex === data.answer;
+  const fb = document.querySelector(`[data-fb="${kind}-${idx}"]`);
+  const step = document.querySelector(`#ex-${idx} [data-step="${isQuiz ? 3 : 4}"]`);
+  if (correct) {
+    fb.className = "feedback ok";
+    fb.textContent = "✓ 答对了！";
+    step.classList.add("passed");
+    state[FLAT[idx].id] = state[FLAT[idx].id] || {};
+    if (isQuiz) state[FLAT[idx].id].quiz = true;
+    else state[FLAT[idx].id].modify = true;
+    saveState(); refreshProgress();
+    showReveal(idx, kind, true);
+  } else {
+    fb.className = "feedback bad";
+    fb.textContent = "✗ 不对哦，再想想——可以换个选项重试。提示：一步步按顺序执行，别跳。";
+    if (isQuiz) step.classList.remove("passed");
+    showReveal(idx, kind, false);
+  }
+  return { correct };
+}
+
+function showReveal(idx, kind, show) {
+  const rv = document.querySelector(`[data-reveal="${kind}-${idx}"]`);
+  if (show) rv.classList.add("show");
+  else rv.classList.remove("show");
+}
+
+function refreshProgress() {
+  CHAPTERS.forEach(ch => {
+    const done = ch.exercises.filter((_, ei) => {
+      const s = state[ch.num - 1 + "-" + ei];
+      return s && s.typed && s.quiz;
+    }).length;
+    const badge = document.querySelector(`.badge[data-ch="${ch.num}"]`);
+    if (badge) {
+      badge.textContent = done + "/2";
+      badge.classList.toggle("done", done === 2);
+    }
+  });
+  const total = FLAT.filter(f => {
+    const s = state[f.id];
+    return s && s.typed && s.quiz;
+  }).length;
+  document.getElementById("total-label").textContent = total + " / " + FLAT.length;
+  document.getElementById("total-fill").style.width = (total / FLAT.length * 100) + "%";
+  FLAT.forEach((f, i) => {
+    const s = state[f.id];
+    document.getElementById("ex-" + i).classList.toggle("done-all", !!(s && s.typed && s.quiz));
+  });
+}
+
+/* 事件绑定 */
+document.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const idx = +btn.dataset.idx, act = btn.dataset.act;
+  if (act === "check-type") {
+    checkTyping(idx);
+  } else if (act === "submit-quiz") {
+    const sel = document.querySelector(`input[name="quiz-${idx}"]:checked`);
+    const fb = document.querySelector(`[data-fb="quiz-${idx}"]`);
+    if (!sel) { fb.className = "feedback info"; fb.textContent = "先选一个答案再提交。"; return; }
+    const r = answerQuiz(idx, +sel.value, "quiz");
+    if (r.correct) btn.textContent = "查看解析";
+  } else if (act === "submit-modify") {
+    const sel = document.querySelector(`input[name="modify-${idx}"]:checked`);
+    const fb = document.querySelector(`[data-fb="modify-${idx}"]`);
+    if (!sel) { fb.className = "feedback info"; fb.textContent = "先选一个答案再检查。"; return; }
+    const r = answerQuiz(idx, +sel.value, "modify");
+    if (r.correct) btn.textContent = "查看解析";
+  }
+});
+
+/* textarea 支持 Tab 缩进 */
+document.addEventListener("keydown", e => {
+  if (e.target.classList && e.target.classList.contains("type-area") && e.key === "Tab") {
+    e.preventDefault();
+    const ta = e.target;
+    const pos = ta.selectionStart;
+    ta.setRangeText("    ", pos, ta.selectionEnd, "end");
+  }
+});
+
+/* 手机目录开关 */
+const hamburger = document.getElementById("hamburger");
+hamburger.addEventListener("click", () => document.body.classList.toggle("nav-open"));
+document.getElementById("overlay").addEventListener("click", () => document.body.classList.remove("nav-open"));
+document.getElementById("toc").addEventListener("click", e => {
+  if (e.target.closest("a")) document.body.classList.remove("nav-open");
+});
+
+/* =========================================================
+   启动
+   ========================================================= */
+buildToc();
+buildChapters();
+refreshProgress();
+setupAskAi();
+
+/* =========================================================
+   AI 帮助面板（参考站同款：用户自备百炼 Key，浏览器直连）
+   ========================================================= */
+let aiCtx = null;      // { code, label }
+let aiMsgs = [];       // 对话历史 [{role, content}]
+const AI_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+const AI_SYSTEM = "你是一位耐心的 Python 入门老师。用简体中文回答，面向零基础学员：先直接回答问题，再简短解释原理，不超过 200 字。用户会发来一段教学代码，请围绕这段代码回答，不要展开无关话题。";
+
+function loadAiConfig() {
+  try { return JSON.parse(localStorage.getItem("python-practice-ai-config-v1")) || {}; }
+  catch (e) { return {}; }
+}
+function saveAiConfig() {
+  try {
+    localStorage.setItem("python-practice-ai-config-v1",
+      JSON.stringify({ key: document.getElementById("aiKey").value.trim(), model: document.getElementById("aiModel").value }));
+  } catch (e) { /* 隐私模式下忽略 */ }
+}
+
+/* 给每个代码块包一层，加「问 AI」按钮 */
+function setupAskAi() {
+  document.querySelectorAll("pre.codeblock").forEach(pre => {
+    const wrap = document.createElement("div");
+    wrap.className = "code-wrap";
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    const btn = document.createElement("button");
+    btn.className = "ask-ai";
+    btn.type = "button";
+    btn.textContent = "问 AI";
+    btn.addEventListener("click", () => {
+      const ex = pre.closest(".exercise");
+      const sec = pre.closest("section.chapter");
+      let label = "示例代码";
+      if (ex) label = ex.querySelector(".ex-badge").textContent + " · " + ex.querySelector(".ex-title").textContent;
+      else if (sec) label = sec.querySelector(".ch-title").textContent.trim();
+      setAiContext(pre.textContent, label);
+      if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function setAiContext(code, label) {
+  aiCtx = { code, label };
+  aiMsgs = [];
+  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
+  const chip = document.getElementById("aiContext");
+  chip.innerHTML = "当前代码：<b></b>";
+  chip.querySelector("b").textContent = label;
+  const input = document.getElementById("aiInput");
+  if (!input.value.trim()) input.value = "请用初学者能懂的话，逐行解释这段代码。";
+  setAiStatus("", "info");
+}
+
+function addMsg(role, text) {
+  const chat = document.getElementById("aiChat");
+  const empty = chat.querySelector(".ai-empty");
+  if (empty) empty.remove();
+  const div = document.createElement("div");
+  div.className = "ai-msg " + role;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function setAiStatus(text, cls) {
+  const st = document.getElementById("aiStatus");
+  st.textContent = text;
+  st.className = "ai-status" + (cls ? " " + cls : "");
+}
+
+const PRESETS = {
+  explain: "请用初学者能懂的话，逐行解释这段代码，说明每个关键符号的作用。",
+  edge: "这段代码在边界输入下会发生什么？请举 2 个边界例子说明。",
+  practice: "围绕这段代码出一个类似的小练习题，先不要给答案，等我回答。"
+};
+
+async function aiSend() {
+  const key = document.getElementById("aiKey").value.trim();
+  const model = document.getElementById("aiModel").value;
+  const q = document.getElementById("aiInput").value.trim();
+  if (!aiCtx) { setAiStatus("先点击某个代码块右上角的「问 AI」，选择要讨论的代码。", "info"); return; }
+  if (!q) { setAiStatus("先输入你的问题。", "info"); return; }
+  if (!key) { setAiStatus("请先在上方填写百炼 API Key（只存在你自己的浏览器里）。"); return; }
+  saveAiConfig();
+  const userContent = `代码（${aiCtx.label}）：\n${aiCtx.code}\n\n问题：${q}`;
+  addMsg("user", q);
+  aiMsgs.push({ role: "user", content: userContent });
+  document.getElementById("aiInput").value = "";
+  setAiStatus("思考中…", "info");
+  document.getElementById("aiSend").disabled = true;
+  try {
+    const resp = await fetch(AI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({ model, messages: [{ role: "system", content: AI_SYSTEM }, ...aiMsgs] })
+    });
+    if (!resp.ok) {
+      const t = await resp.text().catch(() => "");
+      if (resp.status === 401) throw new Error("Key 无效或没有权限（401），请检查百炼 API Key。");
+      throw new Error("接口返回 " + resp.status + "：" + t.slice(0, 120));
+    }
+    const data = await resp.json();
+    const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "(空回复)";
+    aiMsgs.push({ role: "assistant", content: text });
+    addMsg("assistant", text);
+    setAiStatus("", "info");
+  } catch (err) {
+    const hint = (err instanceof TypeError)
+      ? "无法连接到百炼接口。可能原因：网络不通、浏览器拦截了跨域请求，或 Key 刚申请还未生效。请稍后重试。"
+      : err.message;
+    setAiStatus("发送失败：" + hint);
+    aiMsgs.pop();  // 失败的这条不留在历史里，改完可以直接重发
+  } finally {
+    document.getElementById("aiSend").disabled = false;
+  }
+}
+
+document.getElementById("aiSend").addEventListener("click", aiSend);
+document.getElementById("aiNew").addEventListener("click", () => {
+  aiMsgs = [];
+  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
+  setAiStatus("已开始新对话（当前代码不变）。", "info");
+});
+document.getElementById("aiFab").addEventListener("click", () => document.body.classList.toggle("ai-open"));
+document.getElementById("aiClose").addEventListener("click", () => document.body.classList.remove("ai-open"));
+document.querySelectorAll(".ai-presets button").forEach(b => {
+  b.addEventListener("click", () => {
+    const input = document.getElementById("aiInput");
+    input.value = PRESETS[b.dataset.preset];
+    input.focus();
+  });
+});
+(function restoreAiConfig() {
+  const cfg = loadAiConfig();
+  if (cfg.key) document.getElementById("aiKey").value = cfg.key;
+  if (cfg.model) document.getElementById("aiModel").value = cfg.model;
+})();
+
+/* =========================================================
+   自检模式：?selftest=1 时自动运行，结果写入 #selftest-report
+   ========================================================= */
+async function runSelfTests() {
+  const box = document.getElementById("selftest-report");
+  box.style.display = "block";
+  const results = [];
+  const ok = (name, cond) => results.push((cond ? "PASS" : "FAIL") + " | " + name);
+
+  // T1 归一化：行尾空格 + 末尾空行
+  const n1 = normalizeInput("print(1)   \n\n\n");
+  ok("归一化：忽略行尾空格与末尾空行", n1.length === 1 && n1[0] === "print(1)");
+  // T2 归一化：Tab 转 4 空格
+  ok("归一化：Tab 转 4 空格", normalizeInput("\tx = 1")[0] === "    x = 1");
+  // T3 多行题正确输入（带行尾空格和末尾空行干扰）
+  const t0 = FLAT[0].ex.target;
+  const r3 = checkTyping(0, t0 + "  \n\n");
+  ok("亲手打：多行正确输入通过（含行尾空格/末尾空行干扰）", r3.pass && state["0-0"].typed === true);
+  // T4 错误输入：指出第一个不同位置（第几行）
+  const wrong = t0.replace("cups = 4", "cups = 5");
+  const r4 = checkTyping(0, wrong);
+  checkTyping(0, t0);  // 恢复正确状态，供后续进度测试使用
+  ok("亲手打：错误输入被拒绝并指出第 2 行", !r4.pass && r4.msg.includes("第 2 行"));
+  // T5 缩进检查：有缩进的代码（第 3 章练习 1），缩进少 2 格必须报错
+  const flatCh3 = FLAT.findIndex(f => f.ci === 2 && f.ei === 0);
+  const tCh3 = FLAT[flatCh3].ex.target;
+  const badIndent = tCh3.split("\n").map((l, i) => i === 1 ? l.slice(2) : l).join("\n");
+  const r5 = checkTyping(flatCh3, badIndent);
+  ok("缩进检查：行中缩进被保留比较、少缩进被指出", !r5.pass && r5.msg.includes("第 2 行") && r5.msg.includes("空格"));
+  const r5b = checkTyping(flatCh3, tCh3);
+  ok("缩进检查：正确缩进的输入通过", r5b.pass);
+  // T6 答错 → 重试 → 答对
+  const q6a = answerQuiz(0, 0, "quiz");   // 错误选项
+  const q6b = answerQuiz(0, FLAT[0].ex.guess.answer, "quiz");
+  ok("先猜：答错可重试，答对后标记 quiz", q6a.correct === false && q6b.correct === true && state["0-0"].quiz === true);
+  // T7 改一点试试
+  answerQuiz(0, (FLAT[0].ex.modify.answer + 1) % FLAT[0].ex.modify.options.length, "modify");
+  const q7 = answerQuiz(0, FLAT[0].ex.modify.answer, "modify");
+  ok("改一点试试：检查答案通过并记录", q7.correct === true && state["0-0"].modify === true);
+  // T8 完成第 1 章第 2 题 → 章进度徽章 2/2
+  checkTyping(1, FLAT[1].ex.target);
+  answerQuiz(1, FLAT[1].ex.guess.answer, "quiz");
+  refreshProgress();
+  const badge1 = document.querySelector('.badge[data-ch="1"]');
+  ok("进度记录：完成第 1 章两题后徽章显示 2/2", badge1.textContent === "2/2" && badge1.classList.contains("done"));
+  // T9 localStorage 往返
+  const saved = localStorage.getItem("python-practice-progress-v1");
+  const parsed = JSON.parse(saved || "{}");
+  ok("进度记录：localStorage 写入并可读回", !!(parsed["0-0"] && parsed["0-0"].typed && parsed["0-0"].quiz));
+  // T10 总进度
+  const totalNow = FLAT.filter(f => { const s = state[f.id]; return s && s.typed && s.quiz; }).length;
+  ok("进度记录：总进度 = 2 / 12", totalNow === 2 && document.getElementById("total-label").textContent === "2 / 12");
+  // T11 手机宽度无横向溢出（仅在窄视口下执行）
+  if (window.innerWidth <= 768) {
+    ok("手机布局：页面无横向溢出", document.documentElement.scrollWidth <= window.innerWidth + 1);
+    const fab = document.getElementById("aiFab");
+    const r = fab.getBoundingClientRect();
+    const fabVisible = getComputedStyle(fab).display !== "none" && r.width > 0
+      && Math.abs((r.x + r.width) - document.documentElement.clientWidth) <= 16;  // 贴近视口右缘
+    ok("手机布局：AI 悬浮按钮可见且贴右缘", fabVisible);
+  }
+  // T12 AI 面板：「问 AI」载入代码上下文（第一个按钮是第 1 章示例，第二个是练习 1.1）
+  const askBtns = document.querySelectorAll(".ask-ai");
+  askBtns[0].click();
+  const t12a = aiCtx && aiCtx.code.includes("price = 12") && document.getElementById("aiContext").textContent.includes("第 1 章");
+  askBtns[1].click();
+  const t12b = aiCtx && aiCtx.code.includes("juice") && document.getElementById("aiContext").textContent.includes("练习 1.1");
+  ok("AI 面板：点击「问 AI」后载入对应代码上下文", t12a && t12b);
+  // T13 AI 发送：模拟接口成功
+  const origFetch = window.fetch;
+  window.fetch = () => Promise.resolve(new Response(
+    JSON.stringify({ choices: [{ message: { content: "测试回复OK" } }] }),
+    { status: 200, headers: { "Content-Type": "application/json" } }));
+  document.getElementById("aiKey").value = "sk-test";
+  document.getElementById("aiInput").value = "解释一下";
+  await aiSend();
+  ok("AI 面板：模拟调用成功并显示回复", document.getElementById("aiChat").textContent.includes("测试回复OK"));
+  // T14 AI 发送：网络失败给友好提示
+  window.fetch = () => Promise.reject(new TypeError("Failed to fetch"));
+  document.getElementById("aiInput").value = "再问一个";
+  await aiSend();
+  ok("AI 面板：调用失败时给出友好提示", document.getElementById("aiStatus").textContent.includes("无法连接"));
+  window.fetch = origFetch;
+
+  box.textContent = results.join("\n");
+  const allPass = results.every(r => r.startsWith("PASS"));
+  document.title = (allPass ? "SELFTEST-ALL-PASS" : "SELFTEST-FAIL") + " · Python 边学边练";
+}
+if (location.search.indexOf("selftest=1") !== -1) runSelfTests().catch(e => {
+  const box = document.getElementById("selftest-report");
+  box.style.display = "block";
+  box.textContent = "SELFTEST-ERROR " + (e && e.message || e);
+  document.title = "SELFTEST-FAIL · Python 边学边练";
+});
+</script>
+</body>
+</html>

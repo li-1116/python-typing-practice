@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 打字练习 · 代码键位特训</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --cyan: #22d3ee;
+    --cyan-deep: #06b6d4;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --bad: #dc2626;
+    --bad-soft: #fef2f2;
+    --amber: #f59e0b;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --dim: #6b7280;
+    --ink: #0f172a;
+    --pending: #94a3b8;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    line-height: 1.7;
+    background:
+      radial-gradient(900px 420px at 18% -8%, rgba(251,207,232,.42), transparent 62%),
+      radial-gradient(900px 460px at 85% -10%, rgba(191,219,254,.5), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .mono { font-family: Consolas, Menlo, "Cascadia Mono", monospace; }
+  kbd {
+    background: #fff; border: 1px solid #d1d5db; border-bottom-width: 2px;
+    border-radius: 5px; padding: 0 6px; font-size: 11px; font-family: Consolas, Menlo, monospace; color: #475569;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 26px 20px 80px; }
+
+  /* ============ 顶栏 ============ */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .brand-card {
+    display: flex; align-items: center; gap: 13px;
+    background: rgba(255,255,255,.88); border: 1px solid var(--border);
+    border-radius: 16px; padding: 10px 18px 10px 12px; box-shadow: 0 2px 10px rgba(16,24,40,.05);
+  }
+  .logo {
+    width: 44px; height: 44px; border-radius: 12px; flex: 0 0 44px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    display: grid; place-items: center; font-size: 22px;
+    box-shadow: 0 4px 12px rgba(37,99,235,.3);
+  }
+  .brand-en { font-size: 11px; letter-spacing: 3px; color: #9ca3af; font-weight: 700; }
+  .brand-cn { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+  .brand-cn .sub { font-size: 12px; font-weight: 400; color: var(--dim); margin-left: 8px; letter-spacing: 1px; }
+  .top-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.9); border: 1px solid var(--border);
+    border-radius: 99px; padding: 5px 14px; font-size: 12.5px; font-weight: 700; color: var(--dim);
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+  .chip.ready .dot { background: #94a3b8; }
+  .chip.typing { color: #b45309; }
+  .chip.typing .dot { background: var(--amber); animation: pulse 1s infinite; }
+  .chip.done { color: var(--ok); }
+  .chip.done .dot { background: var(--ok); }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  /* ============ 题目列表 ============ */
+  .hero {
+    background: rgba(255,255,255,.9); border: 1px solid var(--border); border-radius: 18px;
+    padding: 26px 30px; margin-top: 22px; box-shadow: 0 2px 12px rgba(16,24,40,.05);
+  }
+  .hero h1 { margin: 0 0 6px; font-size: 24px; color: var(--ink); }
+  .hero p { margin: 0; color: var(--dim); font-size: 14px; }
+  .hero .bar { height: 8px; background: #e8ebf0; border-radius: 99px; overflow: hidden; margin-top: 16px; }
+
+  .tabs { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid var(--border); background: #fff; border-radius: 10px;
+    padding: 7px 16px; font-size: 13px; font-weight: 700; color: var(--dim);
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .tab span { font-weight: 400; color: #9ca3af; font-size: 12px; margin-left: 5px; }
+  .tab:hover { border-color: var(--cyan-deep); color: var(--cyan-deep); }
+  .tab.active { background: var(--cyan); border-color: var(--cyan-deep); color: #fff; }
+  .tab.active span { color: rgba(255,255,255,.85); }
+
+  .zh-hint { color: #b45309; }
+  .hero .bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, #22d3ee, #2563eb); border-radius: 99px; transition: width .3s; }
+  .hero .bar-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12.5px; color: var(--dim); }
+
+  .qgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .qcard {
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 13px;
+    padding: 13px 15px; cursor: pointer; transition: all .15s; position: relative; text-align: left;
+    font-family: inherit; width: 100%;
+  }
+  .qcard:hover { border-color: var(--cyan-deep); box-shadow: 0 4px 14px rgba(6,182,212,.15); transform: translateY(-1px); }
+  .qcard .no { font-size: 11px; font-weight: 800; color: var(--cyan-deep); letter-spacing: 1px; }
+  .qcard .tt { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 2px 0 3px; }
+  .qcard .tg { font-size: 11px; color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 0 7px; }
+  .qcard .st { position: absolute; top: 11px; right: 12px; font-size: 12px; color: #cbd5e1; }
+  .qcard.done { border-color: #86efac; background: #f6fef9; }
+  .qcard.done .st { color: var(--ok); }
+
+  .list-foot { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 22px; }
+  .linkbtn { background: none; border: none; color: #9ca3af; text-decoration: underline; cursor: pointer; font-size: 12px; font-family: inherit; padding: 0; }
+  .linkbtn:hover { color: var(--bad); }
+  .home-link { color: var(--dim); text-decoration: none; }
+  .home-link:hover { color: var(--accent); }
+
+  /* ============ 练习视图 ============ */
+  #trainView { margin-top: 20px; }
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 10px;
+    padding: 7px 14px; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; font-family: inherit;
+  }
+  .back-btn:hover { border-color: #94a3b8; color: var(--ink); }
+  .lesson { font-size: 15px; color: var(--ink); }
+  .lesson b { color: var(--cyan-deep); font-size: 17px; }
+  .toolbar .spacer { flex: 1; }
+  .stat {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 99px;
+    padding: 5px 13px; font-size: 12.5px; color: var(--dim);
+  }
+  .stat b { color: var(--ink); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+
+  .target-card {
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px 26px 18px; margin-top: 14px; box-shadow: 0 2px 14px rgba(16,24,40,.05);
+  }
+  .tc-head { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--dim); letter-spacing: .5px; }
+  .tc-head .dash { color: var(--accent); font-weight: 800; }
+  .tc-head .tag { margin-left: auto; font-size: 11.5px; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 9px; font-weight: 700; }
+  .use-line { text-align: center; font-size: 13.5px; color: #475569; margin: 10px auto 4px; max-width: 640px; }
+  .use-line .use-tt { display: block; font-size: 16.5px; font-weight: 800; color: var(--ink); margin-bottom: 1px; }
+
+  .code-view {
+    font-family: Consolas, Menlo, "Cascadia Mono", monospace;
+    font-size: 30px; line-height: 1.55; letter-spacing: .5px;
+    padding: 18px 8px 10px; max-height: 300px; overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .cl { white-space: pre; display: flex; align-items: baseline; }
+  .ln {
+    flex: 0 0 34px; text-align: right; padding-right: 14px;
+    font-size: 13px; color: #cbd5e1; user-select: none;
+  }
+  .cl.cur-line .ln { color: var(--cyan-deep); font-weight: 700; }
+  .ch { border-radius: 4px; transition: color .06s; }
+  .ch.c-pend { color: var(--pending); }
+  .ch.c-ok { color: var(--ok); }
+  .ch.c-cur {
+    background: #a5f3fc; color: var(--ink);
+    box-shadow: 0 0 0 2px rgba(34,211,238,.45);
+    animation: caret 1.1s ease-in-out infinite;
+  }
+  @keyframes caret { 50% { box-shadow: 0 0 0 2px rgba(34,211,238,.15); } }
+  .ch.nl { display: inline-block; width: 0; overflow: hidden; }
+  .ch.c-cjk { text-decoration: underline dashed #f59e0b; text-underline-offset: 5px; }
+  .ch.nl.c-cur { width: 14px; height: 1.05em; vertical-align: text-bottom; }
+  .ch.err-flash { background: #fecaca !important; color: #b91c1c !important; animation: shake .2s; }
+  @keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+  .done-bar {
+    display: none; margin-top: 12px; border-radius: 12px; padding: 12px 18px;
+    background: var(--ok-soft); border: 1px solid #86efac; color: #15803d;
+    font-size: 14.5px; text-align: center; font-weight: 600;
+  }
+  .done-bar.show { display: block; }
+  .done-bar .btn { margin-left: 12px; }
+
+  .tc-foot {
+    display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
+    border-top: 1px solid #eef1f5; margin-top: 12px; padding-top: 11px;
+    font-size: 12px; color: #9ca3af;
+  }
+  .ime-warn {
+    display: none; color: #b45309; background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 1px 10px; font-weight: 600;
+  }
+  .ime-warn.show { display: inline-block; }
+
+  /* ============ 理解题 & 逐行看懂 ============ */
+  .panel {
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); border-radius: 18px;
+    padding: 22px 26px; margin-top: 14px; box-shadow: 0 2px 14px rgba(16,24,40,.05);
+  }
+  .panel h3 { margin: 0 0 4px; font-size: 16px; color: var(--ink); }
+  .panel .p-sub { font-size: 12.5px; color: var(--dim); margin: 0 0 14px; }
+  .step-tag {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 800;
+    color: var(--accent); letter-spacing: .5px; margin-bottom: 4px;
+  }
+  .step-tag::before { content: "—"; }
+  .q-text { font-size: 15px; margin: 0 0 12px; }
+  .opts { display: flex; flex-direction: column; gap: 9px; }
+  .opts button {
+    display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left;
+    border: 1px solid var(--border); border-radius: 11px; padding: 11px 16px;
+    font-size: 14px; cursor: pointer; transition: all .15s; background: #fff;
+    font-family: inherit; color: var(--text); line-height: 1.6;
+  }
+  .opts button:hover { border-color: #67e8f9; background: #f6feff; }
+  .opts button .abc {
+    flex: 0 0 22px; height: 22px; border-radius: 50%; background: #f1f5f9; color: #475569;
+    display: inline-grid; place-items: center; font-size: 12px; font-weight: 800; align-self: center;
+  }
+  .opts button.picked { border-color: var(--cyan-deep); background: #ecfeff; }
+  .opts button.right { border-color: var(--ok); background: var(--ok-soft); }
+  .opts button.right .abc { background: var(--ok); color: #fff; }
+  .opts button.wrong { border-color: #fca5a5; background: var(--bad-soft); }
+  .opts button.wrong .abc { background: var(--bad); color: #fff; }
+  .opts button:disabled { cursor: default; }
+
+  .fb { display: none; margin-top: 12px; font-size: 13.5px; border-radius: 10px; padding: 10px 14px; white-space: pre-wrap; }
+  .fb.show { display: block; }
+  .fb.ok { background: var(--ok-soft); border: 1px solid #bbf7d0; color: #15803d; }
+  .fb.bad { background: var(--bad-soft); border: 1px solid #fecaca; color: #b91c1c; }
+  .fb.hint { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+  .reveal {
+    display: none; margin-top: 12px; font-size: 14px;
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 11px 15px;
+  }
+  .reveal.show { display: block; }
+
+  .lines { display: flex; flex-direction: column; gap: 10px; }
+  .line-row { border-left: 3px solid var(--accent-soft); padding: 2px 0 2px 14px; }
+  .line-row code {
+    display: inline-block; background: #f1f5f9; color: var(--ink);
+    border-radius: 5px; padding: 1px 9px; font-size: 13px;
+    font-family: Consolas, Menlo, monospace; white-space: pre; margin-bottom: 3px;
+  }
+  .line-row p { margin: 0; font-size: 14px; color: #374151; }
+  .sym { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .sym-h { font-size: 12.5px; color: var(--dim); }
+  .sym-item { font-size: 12.5px; background: #f8fafc; border: 1px solid var(--border); border-radius: 99px; padding: 2px 11px; color: #475569; }
+  .sym-item b { color: var(--accent); font-family: Consolas, Menlo, monospace; margin-right: 5px; }
+
+  .next-row { display: flex; align-items: center; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+  .next-note { font-size: 12.5px; color: #9ca3af; }
+
+  .btn {
+    border: none; border-radius: 9px; padding: 9px 24px;
+    background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: filter .15s;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: #fff; color: var(--accent); border: 1px solid #bfdbfe; }
+  .btn.ghost:hover { background: var(--accent-soft); }
+  .btn.small { padding: 4px 13px; font-size: 12.5px; }
+
+  /* ============ 屏幕键盘 ============ */
+  .kb-zone { margin-top: 22px; }
+  .kb { display: flex; flex-direction: column; gap: 7px; align-items: center; }
+  .krow { display: flex; gap: 7px; }
+  .key {
+    min-width: 46px; height: 47px; padding: 0 8px;
+    background: rgba(255,255,255,.95); border: 1px solid #e2e6ec; border-bottom-width: 3px;
+    border-radius: 10px; font-size: 13px; color: #64748b;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; transition: all .07s; font-family: Consolas, Menlo, monospace;
+  }
+  .key.wide { min-width: 66px; }
+  .key.xwide { min-width: 92px; }
+  .key.space { min-width: 250px; }
+  .key.kb-next {
+    background: var(--cyan); border-color: var(--cyan-deep); color: #fff; font-weight: 700;
+    box-shadow: 0 0 16px rgba(34,211,238,.55); transform: translateY(1px);
+    border-bottom-width: 2px;
+  }
+  .key.kb-err {
+    background: #fecaca; border-color: #ef4444; color: #b91c1c;
+    box-shadow: 0 0 12px rgba(239,68,68,.4);
+  }
+  .kb-note { text-align: center; font-size: 11.5px; color: #b0b7c3; margin-top: 10px; }
+
+  /* 结算 */
+  .sum-list { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; }
+  .sum-item { display: flex; gap: 10px; align-items: baseline; font-size: 13.5px; border-bottom: 1px dashed #eef1f4; padding-bottom: 6px; color: var(--dim); }
+  .sum-item .m { width: 18px; color: #cbd5e1; }
+  .sum-item.done { color: #15803d; }
+  .sum-item.done .m { color: var(--ok); }
+
+  @media (max-width: 860px) {
+    .qgrid { grid-template-columns: repeat(2, 1fr); }
+    .code-view { font-size: 22px; }
+    .key { min-width: 30px; height: 38px; font-size: 11px; }
+    .key.space { min-width: 150px; }
+    .key.wide, .key.xwide { min-width: 44px; }
+    .kb-zone { display: none; }
+    .kb-note { display: none; }
+  }
+  @media (max-width: 560px) {
+    .qgrid { grid-template-columns: 1fr; }
+    .wrap { padding: 16px 12px 60px; }
+    .code-view { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand-card">
+      <div class="logo">🐍</div>
+      <div>
+        <div class="brand-en">PYTHON TYPING TRAINER</div>
+        <div class="brand-cn">Python 打字练习<span class="sub">代码键位特训</span></div>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="chip ready" id="statusChip"><span class="dot"></span><span id="statusText">READY</span></span>
+      <span class="chip" id="doneChip">🎯 0 / 18</span>
+    </div>
+  </header>
+
+  <!-- 题目列表 -->
+  <section id="listView">
+    <div class="hero">
+      <h1 id="heroTitle">第 1 关 · 基础打字</h1>
+      <p id="heroDesc">第 1 关共 18 题，从 print 练到函数。照着敲代码（敲错不前进），全部敲对自动进入理解题，再逐行看懂。</p>
+      <div class="tabs" id="levelTabs">
+        <button class="tab active" data-level="0">第 1 关 · 基础 <span>18 题</span></button>
+        <button class="tab" data-level="1">第 2 关 · 讲义原例 <span>14 题</span></button>
+      </div>
+      <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+      <div class="bar-row"><span id="barLabel">本关进度</span><span id="barNum">0 / 18</span></div>
+    </div>
+    <div class="qgrid" id="qgrid"></div>
+    <p class="list-foot">进度自动保存在本浏览器 · <button class="linkbtn" id="resetAll">清空全部进度</button> · <a class="home-link" href="./index.html">← 回到教程首页</a></p>
+  </section>
+
+  <!-- 练习视图 -->
+  <section id="trainView" hidden>
+    <div class="toolbar">
+      <button class="back-btn" id="backBtn">← 返回 <kbd>Esc</kbd></button>
+      <div class="lesson"><b id="qNo">01</b> · <span id="qTitle"></span></div>
+      <div class="spacer"></div>
+      <span class="stat">⏱ 用时 <b id="tTime">0.0s</b></span>
+      <span class="stat">⚡ <b id="tWpm">0</b> WPM</span>
+      <span class="stat">◎ 正确率 <b id="tAcc">100%</b></span>
+      <span class="stat">🎯 <b id="tProg">0/0</b></span>
+    </div>
+
+    <div class="target-card">
+      <div class="tc-head">
+        <span class="dash">—</span> TARGET · 照着敲，敲对自动进入理解题
+        <span class="tag" id="qTag"></span>
+      </div>
+      <div class="use-line"><span class="use-tt" id="useTt"></span><span id="useText"></span></div>
+      <div class="code-view" id="codeView"></div>
+      <div class="done-bar" id="doneBar"></div>
+      <div class="tc-foot">
+        <span>开始输入自动计时</span>
+        <span>敲错不前进，只记错误</span>
+        <span class="zh-hint" id="zhHint" style="display:none">橙色虚线的中文自动跳过，不用打</span>
+        <span><kbd>Tab</kbd> 重打本题</span>
+        <span><kbd>Esc</kbd> 返回列表</span>
+        <span class="ime-warn" id="imeWarn">⚠ 检测到中文输入法，请按 Shift 切回英文再敲</span>
+      </div>
+    </div>
+
+    <div class="panel" id="quizPanel" hidden>
+      <div class="step-tag">STEP 2 · 打完猜结果</div>
+      <p class="q-text" id="quizQ"></p>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb3"></div>
+      <div class="reveal" id="reveal3"></div>
+    </div>
+
+    <div class="panel" id="explainPanel" hidden>
+      <div class="step-tag">STEP 3 · 逐行看懂</div>
+      <div class="lines" id="lineList"></div>
+      <div class="sym" id="symList"></div>
+      <div class="next-row">
+        <button class="btn" id="nextBtn"></button>
+        <span class="next-note" id="nextNote"></span>
+      </div>
+    </div>
+
+    <div class="kb-zone">
+      <div class="kb" id="keyboard"></div>
+      <div class="kb-note">屏幕键盘会提前亮出下一个要按的键（要按 Shift 时两个键一起亮）</div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* =========================================================
+   18 道题（代码全部为 ASCII，可被键盘直接敲出）
+   ========================================================= */
+const DATA = [
+{
+  tag: "print()",
+  title: "跟电脑打个招呼",
+  use: "让屏幕上显示一句话：print 后面括号里写什么，屏幕上就显示什么。",
+  demo: 'print("Hello, Python")',
+  demoOut: "Hello, Python",
+  target: 'print("Hello, Python")',
+  quiz: {
+    q: "运行后，屏幕上会显示哪一行？",
+    options: ["Hello, Python", '"Hello, Python"（连引号一起显示）', 'print("Hello, Python")', "什么都不显示"],
+    answer: 0,
+    hint: "print 只把引号里面的内容显示出来。引号是给 Python 看的标记，告诉你「这一段是文字」，不会被打出来。",
+    reveal: "答案是 Hello, Python。引号只负责标出文字的范围，print 显示时会自动去掉它。"
+  },
+  lines: [
+    { code: 'print("Hello, Python")', text: "print 是「显示」指令，括号里放要显示的内容。引号成对出现，表示这是一段文字（字符串），显示时引号不会出现。" }
+  ],
+  symbols: [
+    { sym: "print()", text: "把括号里的内容显示到屏幕上" },
+    { sym: '"…"', text: "字符串的引号，必须成对、英文半角" }
+  ]
+},
+{
+  tag: "print()",
+  title: "打印购物小票上的一行",
+  use: "一次显示好几样东西：商品名、数量、单位，用逗号隔开就行。",
+  demo: 'print("apple", 3, "yuan")',
+  demoOut: "apple 3 yuan",
+  target: 'print("apple", 3, "yuan")',
+  quiz: {
+    q: "运行后屏幕上显示什么？",
+    options: ["apple 3 yuan", "apple3yuan", '"apple" 3 "yuan"', "报错"],
+    answer: 0,
+    hint: "print 用逗号隔开多个值时，输出时会在每个值之间自动补一个空格——所以 apple 和 3 之间有空隙。",
+    reveal: "答案是 apple 3 yuan。逗号只是分隔符，自己不会被打印；每两个值之间的空格是 print 自动加的，引号也会被去掉。"
+  },
+  lines: [
+    { code: 'print("apple", 3, "yuan")', text: "括号里放了三个值：两段文字夹一个数字，中间用逗号隔开。逗号只表示「分开」，不会显示出来。" }
+  ],
+  symbols: [
+    { sym: ",", text: "分隔多个值，输出时变成空格" },
+    { sym: "3", text: "不带引号就是数字，可以参与计算" }
+  ]
+},
+{
+  tag: "变量赋值",
+  title: "记下奶茶的价格",
+  use: "给一个数值起个名字存起来，后面用这个名字，就等于用这个数。",
+  demo: 'price = 12\nprint(price)',
+  demoOut: "12",
+  target: 'price = 12\nprint(price)',
+  quiz: {
+    q: "运行后屏幕上显示什么？",
+    options: ["12", "price", '"12"', "报错"],
+    answer: 0,
+    hint: "print(price) 打印的是 price 里面存着的值，不是「price」这几个字母。",
+    reveal: "答案是 12。第 1 行把 12 存进名字 price；第 2 行打印的是 price 里存的值。"
+  },
+  lines: [
+    { code: "price = 12", text: "等号在这里不是数学的「等于」，而是「赋值」：把右边的 12 存进左边这个名字里。" },
+    { code: "print(price)", text: "打印 price 指向的值 12。变量只是一个名字标签，真正被打印的是它贴住的那个值。" }
+  ],
+  symbols: [
+    { sym: "=", text: "赋值（右边算出来，存到左边）" },
+    { sym: "price", text: "变量名，可反复使用" }
+  ]
+},
+{
+  tag: "变量赋值",
+  title: "把价格改成活动价",
+  use: "同一个名字可以再赋一次值，新值会把旧值盖掉，程序只认最后一次。",
+  demo: 'price = 12\nprice = 9\nprint(price)',
+  demoOut: "9",
+  target: 'price = 12\nprice = 9\nprint(price)',
+  quiz: {
+    q: "如果把第 2 行改成 price = 8，屏幕上会显示什么？",
+    options: ["12", "9", "8", "12 和 8 都显示"],
+    answer: 2,
+    hint: "程序从上往下一行一行执行，最后一次赋的是什么，变量里就剩什么。",
+    reveal: "答案是 8。第 2 行把 price 重新设成 8，原来存的 12 和 9 都被覆盖，print 只打印最后存下的值。"
+  },
+  lines: [
+    { code: "price = 12", text: "第一次赋值：price 里是 12。" },
+    { code: "price = 9", text: "同名再赋值一次，旧的 12 被 9 覆盖。同一个变量只保留最新的一次。" },
+    { code: "print(price)", text: "打印的是当前值 9，不会把 12 也打出来。" }
+  ],
+  symbols: [
+    { sym: "=", text: "覆盖：右边的新值替换左边的旧值" }
+  ]
+},
+{
+  tag: "字符串",
+  title: "拼一句欢迎语",
+  use: "把固定的一句话和另一个人名接起来，组成完整的欢迎语。",
+  demo: 'name = "Tom"\nprint("Hi, " + name)',
+  demoOut: "Hi, Tom",
+  target: 'name = "Tom"\nprint("Hi, " + name)',
+  quiz: {
+    q: "运行后屏幕上显示什么？",
+    options: ["Hi, Tom", "Hi, + name", '"Hi, " + "Tom"', "报错"],
+    answer: 0,
+    hint: "两个字符串之间的 + 表示「接起来」。加号只是操作符，不会被打印，name 也会换成它存的值。",
+    reveal: "答案是 Hi, Tom。先算出 \"Hi, \" + \"Tom\" = \"Hi, Tom\"，再打印结果，引号和加号都不会显示。"
+  },
+  lines: [
+    { code: 'name = "Tom"', text: "把一段文字存进 name。带引号的值是字符串。" },
+    { code: 'print("Hi, " + name)', text: "先用 + 把两段文字接成一段，再打印。变量在计算时会被替换成它的内容。" }
+  ],
+  symbols: [
+    { sym: "+", text: "两段文字之间表示「拼接」" },
+    { sym: '"…"', text: "引号里是文字，不加引号会被当成变量名" }
+  ]
+},
+{
+  tag: "字符串",
+  title: "成绩通知里带上分数",
+  use: "一句话里既有固定文字，又要把变量里的数字填进去，用 f-string 最省事。",
+  demo: 'name = "Zhou"\nscore = 92\nprint(f"{name} got {score}")',
+  demoOut: "Zhou got 92",
+  target: 'name = "Zhou"\nscore = 92\nprint(f"{name} got {score}")',
+  quiz: {
+    q: "如果把引号前面的 f 去掉，变成 print(\"{name} got {score}\")，会怎样？",
+    options: ["原样显示 {name} got {score}", "还是正常显示 Zhou got 92", "报错", "显示成空白"],
+    answer: 0,
+    hint: "f 是「格式化」开关：有 f，大括号里的名字才会被替换成值；没有 f，大括号只是两个普通字符。",
+    reveal: "答案是原样显示 {name} got {score}。f 告诉 Python「这句话里的大括号需要替换成变量的值」，少了它，大括号就变回普通文字了。"
+  },
+  lines: [
+    { code: 'name = "Zhou"', text: "存一段文字。" },
+    { code: "score = 92", text: "存一个数字。同一个程序里可以有不同类型的变量。" },
+    { code: 'print(f"{name} got {score}")', text: "引号前加 f 表示 f-string：大括号 { } 里的名字会被替换成对应的值，其余文字原样保留。" }
+  ],
+  symbols: [
+    { sym: 'f"…"', text: "格式化字符串，大括号里可以放变量" },
+    { sym: "{ }", text: "占位符，会被替换成变量的值" }
+  ]
+},
+{
+  tag: "if",
+  title: "判断成绩是否及格",
+  use: "分数达到 60 就打印一句 Pass，没达到就什么都不做。",
+  demo: 'score = 58\nif score >= 60:\n    print("Pass")',
+  demoOut: "（屏幕上没有任何输出）",
+  target: 'score = 58\nif score >= 60:\n    print("Pass")',
+  quiz: {
+    q: "如果把 score 改成 60，屏幕上会显示什么？",
+    options: ["什么都不显示", "Pass", "Fail", "报错"],
+    answer: 1,
+    hint: ">= 是「大于或等于」，60 >= 60 成立，所以 if 里面那一行会执行。写成 > 才会不成立。",
+    reveal: "答案是 Pass。score 变成 60 后条件成立，执行缩进的 print；原来的 58 条件不成立，这一行被整段跳过，所以什么都不显示。"
+  },
+  lines: [
+    { code: "score = 58", text: "把分数存进 score。" },
+    { code: "if score >= 60:", text: "判断：score 大于或等于 60 吗？行尾的冒号表示「下面开始是条件成立时要做的事」。" },
+    { code: '    print("Pass")', text: "前面缩进 4 个空格，所以它属于 if 内部。只有条件成立才执行；58 不满足，这一行被跳过。" }
+  ],
+  symbols: [
+    { sym: "if", text: "如果……就……" },
+    { sym: ">=", text: "大于或等于（包含相等的情况）" },
+    { sym: ":", text: "冒号：代码块要开始了" },
+    { sym: "缩进", text: "4 个空格，表示这行属于上面的 if" }
+  ]
+},
+{
+  tag: "if / else",
+  title: "判断要不要买地铁票",
+  use: "身高到 140 就要买票，不到就免费——两种情况各做一件事，不会都做。",
+  demo: 'height = 135\nif height >= 140:\n    print("Ticket")\nelse:\n    print("Free")',
+  demoOut: "Free",
+  target: 'height = 135\nif height >= 140:\n    print("Ticket")\nelse:\n    print("Free")',
+  quiz: {
+    q: "如果把 height 改成 145，屏幕上会显示什么？",
+    options: ["Free", "Ticket", "两行都显示", "报错"],
+    answer: 1,
+    hint: "145 >= 140 成立，走 if 那一支；else 是「否则」，只有条件不成立时才会走进去。",
+    reveal: "答案是 Ticket。if 和 else 是一对，两条路只会走一条：条件成立走 if，不成立走 else。"
+  },
+  lines: [
+    { code: "height = 135", text: "把身高存起来。" },
+    { code: "if height >= 140:", text: "先判断这个条件，成立就执行下面缩进的那行。" },
+    { code: '    print("Ticket")', text: "只有条件成立才执行，属于 if 分支。" },
+    { code: "else:", text: "否则——上面那个条件不成立时走这里。else 后面不写条件。" },
+    { code: '    print("Free")', text: "属于 else 分支，同样缩进 4 个空格。135 不满足条件，所以打印的是这一行。" }
+  ],
+  symbols: [
+    { sym: "else:", text: "否则，处理条件不成立的情况" },
+    { sym: "if / else", text: "二选一，必有且只有一支被执行" }
+  ]
+},
+{
+  tag: "if / elif",
+  title: "按积分显示会员等级",
+  use: "积分分档，程序从上往下判断，命中第一个就停，后面的都不看了。",
+  demo: 'points = 120\nif points > 100:\n    print("Diamond")\nelif points > 50:\n    print("Gold")',
+  demoOut: "Diamond",
+  target: 'points = 120\nif points > 100:\n    print("Diamond")\nelif points > 50:\n    print("Gold")',
+  quiz: {
+    q: "如果把 points 改成 30，屏幕会显示什么？",
+    options: ["Diamond", "Gold", "什么都不显示", "报错"],
+    answer: 2,
+    hint: "这段代码只写了 if 和 elif，没有写 else。两个条件都不成立时，就没有任何一行可以执行。",
+    reveal: "答案是 什么都不显示。30 > 100 不成立，30 > 50 也不成立，而且这里没有 else 兜底，所以整段什么都不做——「没写 else」是新手常见的意外空输出。"
+  },
+  lines: [
+    { code: "points = 120", text: "存积分。" },
+    { code: "if points > 100:", text: "第一个判断：积分高于 100 吗？" },
+    { code: '    print("Diamond")', text: "成立就打印这一行，然后整串判断直接结束。" },
+    { code: "elif points > 50:", text: "elif 是「否则如果」：只有在上面条件不成立时，才会轮到这里判断。" },
+    { code: '    print("Gold")', text: "缩进 4 格，属于 elif 分支。120 已经在第一关通过，所以这行不会执行。" }
+  ],
+  symbols: [
+    { sym: "elif", text: "否则如果，接在 if 后面" },
+    { sym: ">", text: "大于（不包含相等）" },
+    { sym: "无 else", text: "条件都不成立时，整段什么都不做" }
+  ]
+},
+{
+  tag: "列表",
+  title: "看看购物清单第一项",
+  use: "一个变量装一串东西，按编号取出其中一项。",
+  demo: 'cart = ["milk", "bread", "egg"]\nprint(cart[0])',
+  demoOut: "milk",
+  target: 'cart = ["milk", "bread", "egg"]\nprint(cart[0])',
+  quiz: {
+    q: "如果把最后一行改成 print(cart[1])，会显示什么？",
+    options: ["milk", "bread", "egg", "报错"],
+    answer: 1,
+    hint: "编号从 0 开始数：[0] 是第一项，[1] 才是第二项。",
+    reveal: "答案是 bread。列表的编号是 0、1、2……所以 cart[1] 取的是第二项 bread，想拿 milk 要写 cart[0]。"
+  },
+  lines: [
+    { code: 'cart = ["milk", "bread", "egg"]', text: "方括号创建一个列表，里面三个字符串用逗号隔开。编号依次是 0、1、2。" },
+    { code: "print(cart[0])", text: "cart[0] 取出编号 0 的那一项，也就是第一项。打印时只显示值，不带引号和方括号。" }
+  ],
+  symbols: [
+    { sym: "[ ]", text: "创建列表 / 按编号取元素" },
+    { sym: "[0]", text: "编号从 0 开始，0 就是第一项" }
+  ]
+},
+{
+  tag: "列表",
+  title: "往购物清单里再加一样",
+  use: "清单不够长就往末尾添一项，再数一数现在一共几项。",
+  demo: 'cart = ["milk", "bread"]\ncart.append("egg")\nprint(len(cart))',
+  demoOut: "3",
+  target: 'cart = ["milk", "bread"]\ncart.append("egg")\nprint(len(cart))',
+  quiz: {
+    q: "屏幕上会显示什么？",
+    options: ["2", "3", "['milk', 'bread', 'egg']", "报错"],
+    answer: 1,
+    hint: "append 是往后加，不是替换：原来 2 项加 1 项就是 3 项。len 数的是个数而不是内容。",
+    reveal: "答案是 3。append 把 egg 加到末尾，列表变成 3 项；len(cart) 返回项数，print 打印这个数字。"
+  },
+  lines: [
+    { code: 'cart = ["milk", "bread"]', text: "先建一个两项的清单。" },
+    { code: 'cart.append("egg")', text: "append 是列表的方法：把括号里的东西加到末尾。注意写法是 列表名.append(值)。" },
+    { code: "print(len(cart))", text: "len 数一共有几项，现在返回 3，print 打印这个数字。" }
+  ],
+  symbols: [
+    { sym: ".append()", text: "在列表末尾追加一项" },
+    { sym: "len()", text: "返回列表的长度（项数）" }
+  ]
+},
+{
+  tag: "列表",
+  title: "把清单里的牛奶换成酸奶",
+  use: "按编号直接替换某一项，不用删掉再加回去。",
+  demo: 'cart = ["milk", "bread"]\ncart[0] = "yogurt"\nprint(cart)',
+  demoOut: "['yogurt', 'bread']",
+  target: 'cart = ["milk", "bread"]\ncart[0] = "yogurt"\nprint(cart)',
+  quiz: {
+    q: "屏幕上会显示什么？",
+    options: ["['yogurt', 'bread']", "yogurt", "['milk', 'bread']", "报错"],
+    answer: 0,
+    hint: "print(cart) 打印的是整个列表，Python 会连方括号和引号一起显示出来；只打印某一项才不带括号。",
+    reveal: "答案是 ['yogurt', 'bread']。cart[0] = \"yogurt\" 把 0 号位置整个换掉；打印整个列表时 Python 会带上方括号和每项的引号。"
+  },
+  lines: [
+    { code: 'cart = ["milk", "bread"]', text: "两项清单。" },
+    { code: 'cart[0] = "yogurt"', text: "等号左边用编号指出位置，右边是新值：把第 0 项换成 yogurt，长度不变。" },
+    { code: "print(cart)", text: "打印整个列表，输出形如 ['yogurt', 'bread']：方括号表示列表，引号表示里面是字符串。" }
+  ],
+  symbols: [
+    { sym: "cart[0] = 值", text: "替换指定位置上的元素" },
+    { sym: "[ ]", text: "打印列表时自动带上方括号" }
+  ]
+},
+{
+  tag: "for 循环",
+  title: "打印 1 到 5 号取餐号",
+  use: "让同一行代码重复执行固定次数，连续打印出排队号。",
+  demo: 'for i in range(1, 6):\n    print(i)',
+  demoOut: "1\n2\n3\n4\n5",
+  target: 'for i in range(1, 6):\n    print(i)',
+  quiz: {
+    q: "如果把 range(1, 6) 改成 range(1, 4)，屏幕上会打印几行？",
+    options: ["3 行", "4 行", "6 行", "1 行"],
+    answer: 0,
+    hint: "range(a, b) 从 a 数到 b-1，结尾那个数不包含。range(1, 4) 只有 1、2、3 三个数。",
+    reveal: "答案是 3 行，分别是 1、2、3。range 的右边界是「不包含」的，所以写 4 只会数到 3——这也是为什么写「1 到 5」要写成 range(1, 6)。"
+  },
+  lines: [
+    { code: "for i in range(1, 6):", text: "for 是循环：range(1, 6) 依次给出 1、2、3、4、5，每一轮把当前的数交给 i。" },
+    { code: "    print(i)", text: "缩进 4 格，属于循环体，每一轮都执行一次，所以打印 5 行。i 每轮都换一个值。" }
+  ],
+  symbols: [
+    { sym: "for … in …", text: "把一串值依次取出来" },
+    { sym: "range(1, 6)", text: "1 到 5，不含结尾的 6" },
+    { sym: "i", text: "循环变量，每轮换成当前的值" }
+  ]
+},
+{
+  tag: "for 循环",
+  title: "依次打印购物清单",
+  use: "清单有几样就打印几行，不用手动写五遍 print。",
+  demo: 'cart = ["milk", "bread", "egg"]\nfor item in cart:\n    print(item)',
+  demoOut: "milk\nbread\negg",
+  target: 'cart = ["milk", "bread", "egg"]\nfor item in cart:\n    print(item)',
+  quiz: {
+    q: "屏幕上会输出什么？",
+    options: ["三行：milk / bread / egg", "一行：['milk', 'bread', 'egg']", "只打印 milk", "报错"],
+    answer: 0,
+    hint: "for 每次只取一项交给 item，所以每一轮打印的是一行；打印整个列表才需要 print(cart)。",
+    reveal: "答案是三行。循环取到 milk 打一行，取到 bread 打一行，取到 egg 打一行，一共三行，每项单独一行。"
+  },
+  lines: [
+    { code: 'cart = ["milk", "bread", "egg"]', text: "三项清单。" },
+    { code: "for item in cart:", text: "把 cart 里的每一项依次取出来，交给 item。列表有几项，循环就转几圈。" },
+    { code: "    print(item)", text: "缩进属于循环体：每转一圈打印当前这一项，所以屏幕上是三行。" }
+  ],
+  symbols: [
+    { sym: "item", text: "自己起的循环变量名，代表「当前这一项」" },
+    { sym: "in cart", text: "从 cart 这个列表里逐个取" }
+  ]
+},
+{
+  tag: "for + if",
+  title: "从分数里挑出及格的",
+  use: "边遍历边筛选：只把满足条件的那些打印出来。",
+  demo: 'scores = [55, 72, 90]\nfor s in scores:\n    if s >= 60:\n        print(s)',
+  demoOut: "72\n90",
+  target: 'scores = [55, 72, 90]\nfor s in scores:\n    if s >= 60:\n        print(s)',
+  quiz: {
+    q: "屏幕上会打印几个数字？",
+    options: ["1 个：90", "2 个：72 和 90", "3 个：全部都打印", "报错"],
+    answer: 1,
+    hint: "55 不满足 60 分的条件会被跳过，但它不会中断循环——循环继续处理后面的分数。",
+    reveal: "答案是 2 个，72 和 90。三个分数都会进循环，但只有满足 s >= 60 的才执行最里面那行 print，55 被跳过。"
+  },
+  lines: [
+    { code: "scores = [55, 72, 90]", text: "三个分数组成列表。" },
+    { code: "for s in scores:", text: "逐个取出分数，s 依次是 55、72、90。" },
+    { code: "    if s >= 60:", text: "缩进 4 格，在循环内部：每取到一个分数都要判断一次。" },
+    { code: "        print(s)", text: "缩进 8 格，属于 if 内部：只有及格的才打印。所以最后只有 72 和 90 出现在屏幕上。" }
+  ],
+  symbols: [
+    { sym: "两层缩进", text: "4 格在循环里，8 格在 if 里" },
+    { sym: ">=", text: "60 分也算及格" }
+  ]
+},
+{
+  tag: "函数",
+  title: "做一个打招呼的小工具",
+  use: "把「打印问候语」这件事打包成一个函数，换个名字就能反复用。",
+  demo: 'def greet(name):\n    print("Hi, " + name)\ngreet("Lin")',
+  demoOut: "Hi, Lin",
+  target: 'def greet(name):\n    print("Hi, " + name)\ngreet("Lin")',
+  quiz: {
+    q: "运行后屏幕上会显示什么？",
+    options: ["Hi, Lin", "什么都不显示（只定义没调用）", "name", "报错"],
+    answer: 0,
+    hint: "def 只是把步骤装进盒子，当时并不执行；真正打印要等下面那行 greet(\"Lin\") 去调用它。",
+    reveal: "答案是 Hi, Lin。def 定义时只是把「怎么打招呼」记下来，下面的 greet(\"Lin\") 才真正运行函数体，name 拿到 Lin。"
+  },
+  lines: [
+    { code: "def greet(name):", text: "def 表示定义一个函数，greet 是函数名，括号里的 name 是参数——一个等调用时才填真值的占位名字。" },
+    { code: '    print("Hi, " + name)', text: "缩进的是函数体：调用这个函数时才会执行，现在只是被记下来。" },
+    { code: 'greet("Lin")', text: "调用函数：把 Lin 传给 name，函数体运行，打印出 Hi, Lin。" }
+  ],
+  symbols: [
+    { sym: "def", text: "定义函数的关键字" },
+    { sym: "name", text: "参数：调用时填入具体值" },
+    { sym: "greet()", text: "调用函数，括号里传值" }
+  ]
+},
+{
+  tag: "函数",
+  title: "算两件商品一共多少钱",
+  use: "让函数把算好的结果交回来，外面接住再决定怎么用。",
+  demo: 'def total(a, b):\n    return a + b\nprint(total(12, 8))',
+  demoOut: "20",
+  target: 'def total(a, b):\n    return a + b\nprint(total(12, 8))',
+  quiz: {
+    q: "屏幕上会显示什么？",
+    options: ["20", "12 + 8", "None", "报错"],
+    answer: 0,
+    hint: "return 把算好的结果交回调用处；print 拿到 20 才显示出来。有 return 就不会是 None。",
+    reveal: "答案是 20。total(12, 8) 让 a = 12、b = 8，return 把 20 递出来，print 再把这个值显示到屏幕上。"
+  },
+  lines: [
+    { code: "def total(a, b):", text: "定义函数 total，它需要两个参数：a 和 b。" },
+    { code: "    return a + b", text: "return 做两件事：算出 a + b，把这个值交回给调用它的地方，然后函数立刻结束。" },
+    { code: "print(total(12, 8))", text: "先执行 total(12, 8) 得到 20（这一步就像把函数替换成它的返回值），再打印 20。" }
+  ],
+  symbols: [
+    { sym: "return", text: "把结果交回调用处，并结束函数" },
+    { sym: "a, b", text: "两个参数，逗号隔开" },
+    { sym: "total(12, 8)", text: "12 给 a，8 给 b" }
+  ]
+},
+{
+  tag: "函数 + if",
+  title: "算打折后的价格",
+  use: "把「满 100 减 10」的规则封装进函数，换个数量重算一遍就行。",
+  demo: 'def pay(price, count):\n    money = price * count\n    if money >= 100:\n        money = money - 10\n    return money\nprint(pay(25, 4))',
+  demoOut: "90",
+  target: 'def pay(price, count):\n    money = price * count\n    if money >= 100:\n        money = money - 10\n    return money\nprint(pay(25, 4))',
+  quiz: {
+    q: "屏幕上会显示什么？",
+    options: ["90", "100", "110", "报错"],
+    answer: 0,
+    hint: "先算总价 25 × 4 = 100，100 已经达到满减线，所以要减 10，最后交回的是 90。",
+    reveal: "答案是 90。函数里：money = 100 → 100 >= 100 成立，money 变成 90 → return 90 → 外面打印 90。"
+  },
+  lines: [
+    { code: "def pay(price, count):", text: "定义算钱的函数，需要单价和数量两个参数。" },
+    { code: "    money = price * count", text: "先算出总价，存进 money。这里的变量只在函数内部有效。" },
+    { code: "    if money >= 100:", text: "缩进 4 格，和 money = ... 同一层，说明它是函数里正常的一步，不是循环。" },
+    { code: "        money = money - 10", text: "缩进 8 格，属于 if：只有总价满 100 才减 10，否则跳过。" },
+    { code: "    return money", text: "把最终金额交回调用处。注意它缩进 4 格，在 if 外面，所以无论有没有满减都会执行。" },
+    { code: "print(pay(25, 4))", text: "25 给 price、4 给 count，函数算出 90 交回来，print 打印 90。" }
+  ],
+  symbols: [
+    { sym: "return", text: "交回结果并结束函数" },
+    { sym: "缩进层级", text: "4 格在函数里，8 格在 if 里" },
+    { sym: "money", text: "局部变量，只在函数内部存在" }
+  ]
+}
+];
+
+/* =========================================================
+   第 2 关：讲义《Python 一篇概全》主线示例（原样保留中文）
+   ========================================================= */
+const DATA2 = [
+{
+  tag: "函数",
+  title: "把规则装进一个函数",
+  use: "讲义第一节那段完整程序里，这一小段负责把分数翻译成等级：90 以上优秀，60 以上及格，其余待提高。",
+  demo: 'def get_level(score):\n    if score >= 90:\n        return "优秀"\n    elif score >= 60:\n        return "及格"\n    else:\n        return "待提高"',
+  demoOut: "（只定义了函数，没有调用，所以屏幕上没有任何输出）",
+  target: 'def get_level(score):\n    if score >= 90:\n        return "优秀"\n    elif score >= 60:\n        return "及格"\n    else:\n        return "待提高"',
+  quiz: {
+    q: "只敲完这段并运行，屏幕上会显示什么？",
+    options: ["什么都不显示", "优秀", "及格", "报错"],
+    answer: 0,
+    hint: "def 只是把规则装进函数，不会自己执行；要等下面出现 get_level(85) 这样的调用才会跑起来。",
+    reveal: "答案是 什么都不显示。这段只是定义，函数体要等调用才执行——讲义里它下面还有 for 循环在调用它。"
+  },
+  lines: [
+    { code: "def get_level(score):", text: "def 定义一个函数，名字叫 get_level；括号里的 score 是参数，调用时把分数传进来。" },
+    { code: "    if score >= 90:", text: "缩进 4 格进入函数体。第一个判断：90 分及以上算优秀。" },
+    { code: '        return "优秀"', text: "return 把「优秀」交回调用处，并立刻结束这次调用，后面的分支都不再执行。" },
+    { code: "    elif score >= 60:", text: "elif 是「否则如果」：只有上面 90 分那条不成立时，才会检查 60 分这一档。" },
+    { code: "    else:", text: "else 兜底：前两档都不成立时走这里，else 后面不写条件。" }
+  ],
+  symbols: [
+    { sym: "def", text: "定义函数" },
+    { sym: "elif", text: "否则如果" },
+    { sym: "return", text: "交回结果并结束函数" },
+    { sym: "缩进 4 格", text: "表示这行属于函数或条件内部" }
+  ]
+},
+{
+  tag: "类型",
+  title: "看清值的类型",
+  use: "同样的数字和文字在 Python 里是不同类型：85 是整数、78.5 是小数、True 是布尔值，type() 能问出类型名。",
+  demo: 'name = "小林"\nscore = 85\naverage = 78.5\npassed = True\nprint(type(score))\nscore = score + 5\nprint(score)',
+  demoOut: "<class 'int'>\n90",
+  target: 'name = "小林"\nscore = 85\naverage = 78.5\npassed = True\nprint(type(score))\nscore = score + 5\nprint(score)',
+  quiz: {
+    q: "最后一行打印什么？",
+    options: ["90", "85", "95", "报错"],
+    answer: 0,
+    hint: "score 先是 85，倒数第二行算出 85 + 5 = 90 再存回 score，所以最后打印 90。",
+    reveal: "答案是 90。type(score) 打印的是类型名 <class 'int'>；score = score + 5 是「先算右边、再存回左边」。"
+  },
+  lines: [
+    { code: 'name = "小林"', text: "带引号是字符串（str）。中文部分会自动跳过，不用你打。" },
+    { code: "score = 85", text: "不带引号是整数（int）。" },
+    { code: "average = 78.5", text: "带小数点是浮点数（float）。" },
+    { code: "passed = True", text: "True / False 是布尔值（bool），首字母必须大写。" },
+    { code: "print(type(score))", text: "type() 返回值的类型，这里显示 <class 'int'>。" },
+    { code: "score = score + 5", text: "先算右边的 85 + 5，再把 90 存回 score。" },
+    { code: "print(score)", text: "打印更新后的 90。" }
+  ],
+  symbols: [
+    { sym: "str / int / float / bool", text: "四种基础类型" },
+    { sym: "type()", text: "查看值的类型" }
+  ]
+},
+{
+  tag: "类型转换",
+  title: "把文字 85 变成数字 85",
+  use: "从文件或输入框拿到的数字往往是字符串，得先转换类型才能做加法。",
+  demo: 'text_score = "85"\nscore = int(text_score)\nprint(score + 5)\nprint(str(score) + "分")',
+  demoOut: "90\n85分",
+  target: 'text_score = "85"\nscore = int(text_score)\nprint(score + 5)\nprint(str(score) + "分")',
+  quiz: {
+    q: "第 3 行打印什么？",
+    options: ["90", "855", "报错", "90.0"],
+    answer: 0,
+    hint: 'int("85") 把字符串变成整数 85，85 + 5 自然得 90；直接 "85" + 5 才会报错。',
+    reveal: "答案是 90。int() 把文字变成整数；最后一行 str(score) 又把 85 变回文字，才能和「分」拼成 85分。"
+  },
+  lines: [
+    { code: 'text_score = "85"', text: "带引号是字符串，不能直接参与加法。" },
+    { code: "score = int(text_score)", text: "int() 把「85」转成整数 85。" },
+    { code: "print(score + 5)", text: "现在是数字相加，得到 90。" },
+    { code: 'print(str(score) + "分")', text: "str() 把 85 转回文字，才能用 + 拼成 85分。" }
+  ],
+  symbols: [
+    { sym: "int()", text: "文字 → 整数" },
+    { sym: "str()", text: "值 → 文字" },
+    { sym: "+", text: "数字相加 / 文字拼接" }
+  ]
+},
+{
+  tag: "表达式",
+  title: "算平均分并格式化输出",
+  use: "把两科分数算成平均分，再判断是否都及格，用一行 f-string 打印出来。",
+  demo: 'chinese = 85\nmath = 92\naverage = (chinese + math) / 2\npassed = chinese >= 60 and math >= 60\nprint(f"平均分：{average:.1f}，全部及格：{passed}")',
+  demoOut: "平均分：88.5，全部及格：True",
+  target: 'chinese = 85\nmath = 92\naverage = (chinese + math) / 2\npassed = chinese >= 60 and math >= 60\nprint(f"平均分：{average:.1f}，全部及格：{passed}")',
+  quiz: {
+    q: "如果把 math 改成 50，最后一行会打印什么？",
+    options: ["平均分：67.5，全部及格：False", "平均分：67.5，全部及格：True", "平均分：88.5，全部及格：False", "报错"],
+    answer: 0,
+    hint: "(85 + 50) / 2 = 67.5；math >= 60 不成立，而 and 要求两边都真，所以结果是 False。",
+    reveal: "答案是 平均分：67.5，全部及格：False。/ 是真除法，结果带小数；and 只要一边为假，整体就是 False。"
+  },
+  lines: [
+    { code: "chinese = 85", text: "存语文分。" },
+    { code: "math = 92", text: "存数学分。" },
+    { code: "average = (chinese + math) / 2", text: "括号先加，再除以 2；/ 的结果总是浮点数（88.5）。" },
+    { code: "passed = chinese >= 60 and math >= 60", text: ">= 得到布尔值，and 要求两边都为 True 才为 True。" },
+    { code: 'print(f"平均分：{average:.1f}，全部及格：{passed}")', text: "引号前的 f 让大括号变成值；:.1f 表示保留一位小数。" }
+  ],
+  symbols: [
+    { sym: "/", text: "真除法，结果是小数" },
+    { sym: "and", text: "两边都真才为真" },
+    { sym: ":.1f", text: "保留一位小数" }
+  ]
+},
+{
+  tag: "字符串",
+  title: "清理并拆分一段文字",
+  use: "去掉两端空格、转小写、按逗号切块、数长度——字符串方法都返回新字符串。",
+  demo: 'text = "  Python,AI  "\nclean = text.strip()\nprint(clean.lower())\nprint(clean.split(","))\nprint(len(clean))',
+  demoOut: "python,ai\n['Python', 'AI']\n9",
+  target: 'text = "  Python,AI  "\nclean = text.strip()\nprint(clean.lower())\nprint(clean.split(","))\nprint(len(clean))',
+  quiz: {
+    q: "为什么 len(clean) 是 9，而不是 13？",
+    options: ["strip() 去掉了首尾的 4 个空格", "lower() 让字母变短了", "split() 删掉了逗号", "报错，len 不能用在字符串上"],
+    answer: 0,
+    hint: "原始字符串前后各有 2 个空格，strip() 去掉后只剩 Python,AI 共 9 个字符；lower() 只改大小写，不改变长度。",
+    reveal: "答案是 strip() 去掉了首尾 4 个空格。注意 strip() 返回新字符串，要赋值给 clean 才能留下结果。"
+  },
+  lines: [
+    { code: 'text = "  Python,AI  "', text: "前后故意留了空格。" },
+    { code: "clean = text.strip()", text: "strip() 去掉两端空白，返回新字符串并存进 clean。" },
+    { code: "print(clean.lower())", text: "lower() 全部转小写 → python,ai。" },
+    { code: 'print(clean.split(","))', text: "按逗号切开，得到列表 ['Python', 'AI']。" },
+    { code: "print(len(clean))", text: "len 数字符个数，9。" }
+  ],
+  symbols: [
+    { sym: ".strip()", text: "去首尾空白" },
+    { sym: ".lower()", text: "全部转小写" },
+    { sym: ".split()", text: "按分隔符切成列表" }
+  ]
+},
+{
+  tag: "列表",
+  title: "列表取项与追加",
+  use: "一个列表装一组分数，按编号取一项，再往后加一项。",
+  demo: "scores = [85, 58, 92]\nprint(scores[0])\nscores.append(76)\nprint(len(scores))",
+  demoOut: "85\n4",
+  target: "scores = [85, 58, 92]\nprint(scores[0])\nscores.append(76)\nprint(len(scores))",
+  quiz: {
+    q: "如果在 append 之前写 print(scores[-1])，会打印什么？",
+    options: ["92", "85", "76", "报错"],
+    answer: 0,
+    hint: "负编号从末尾数：-1 就是最后一项。此时列表还是 [85, 58, 92]，最后一项是 92。",
+    reveal: "答案是 92。-1 表示倒数第一项；等 append(76) 之后，最后一项才会变成 76。"
+  },
+  lines: [
+    { code: "scores = [85, 58, 92]", text: "方括号建列表，编号依次是 0、1、2。" },
+    { code: "print(scores[0])", text: "取第 0 项，打印 85。" },
+    { code: "scores.append(76)", text: "在末尾追加 76，列表变成 4 项。" },
+    { code: "print(len(scores))", text: "len 数项数，4。" }
+  ],
+  symbols: [
+    { sym: "[0]", text: "编号从 0 开始" },
+    { sym: "[-1]", text: "负数从末尾数" },
+    { sym: ".append()", text: "末尾追加一项" }
+  ]
+},
+{
+  tag: "字典",
+  title: "用字典描述一条记录",
+  use: "字典用「键: 值」描述一条记录的多个属性，改值也是按键找。",
+  demo: 'student = {"name": "小林", "score": 85}\nprint(student["name"])\nstudent["score"] = 90\nprint(student["score"])',
+  demoOut: "小林\n90",
+  target: 'student = {"name": "小林", "score": 85}\nprint(student["name"])\nstudent["score"] = 90\nprint(student["score"])',
+  quiz: {
+    q: "屏幕上显示哪两行？",
+    options: ["小林 和 90", "name 和 score", "小林 和 85", "报错"],
+    answer: 0,
+    hint: "第一行按键 name 取值；第 3 行把 score 覆盖成 90，第 4 行再取就是 90。",
+    reveal: "答案是 小林 和 90。字典用键取值，方括号里写键名而不是编号；键已存在时赋值就是覆盖。"
+  },
+  lines: [
+    { code: 'student = {"name": "小林", "score": 85}', text: "大括号建字典，键和值用冒号连，多个键值对用逗号隔开。" },
+    { code: 'print(student["name"])', text: '按键 "name" 取值 → 小林。' },
+    { code: 'student["score"] = 90', text: "键已存在，直接覆盖成 90。" },
+    { code: 'print(student["score"])', text: "再取值 → 90。" }
+  ],
+  symbols: [
+    { sym: "{ }", text: "字典：键: 值" },
+    { sym: '["键名"]', text: "按键取值" }
+  ]
+},
+{
+  tag: "if / elif",
+  title: "条件顺序决定结果",
+  use: "同一组条件，先判 90 还是先判 60，结果完全不同——顺序就是规则的一部分。",
+  demo: 'score = 85\nif not 0 <= score <= 100:\n    print("分数无效")\nelif score >= 90:\n    print("优秀")\nelif score >= 60:\n    print("及格")\nelse:\n    print("待提高")',
+  demoOut: "及格",
+  target: 'score = 85\nif not 0 <= score <= 100:\n    print("分数无效")\nelif score >= 90:\n    print("优秀")\nelif score >= 60:\n    print("及格")\nelse:\n    print("待提高")',
+  quiz: {
+    q: "如果把 score 改成 90，输出变成什么？",
+    options: ["优秀", "及格", "分数无效", "待提高"],
+    answer: 0,
+    hint: "90 >= 90 成立，第二个分支先命中；一旦命中，后面的 elif / else 都不再检查。",
+    reveal: "答案是 优秀。一组 if / elif / else 只会执行第一个成立的分支，所以条件要从最严格的往下写。"
+  },
+  lines: [
+    { code: "score = 85", text: "分数。" },
+    { code: "if not 0 <= score <= 100:", text: "链式比较：先看是否在 0～100 之间，not 取反，超出范围才进来。" },
+    { code: '    print("分数无效")', text: "只有非法分数才会执行这一行。" },
+    { code: "elif score >= 90:", text: "90 分及以上。" },
+    { code: "elif score >= 60:", text: "60 分及以上（85 命中这里）。" },
+    { code: "else:", text: "兜底：以上都不成立时走这里。" },
+    { code: '    print("待提高")', text: "只有 60 以下才打印这一行。" }
+  ],
+  symbols: [
+    { sym: "not", text: "取反" },
+    { sym: "0 <= x <= 100", text: "链式比较" },
+    { sym: "elif", text: "否则如果，按顺序判断" }
+  ]
+},
+{
+  tag: "for 循环",
+  title: "循环里累计人数",
+  use: "计数器先归零，循环里每遇到一个及格分数就加 1。",
+  demo: 'scores = [85, 58, 92, 60]\npassed_count = 0\nfor score in scores:\n    if score >= 60:\n        passed_count += 1\nprint(f"及格人数：{passed_count}")',
+  demoOut: "及格人数：3",
+  target: 'scores = [85, 58, 92, 60]\npassed_count = 0\nfor score in scores:\n    if score >= 60:\n        passed_count += 1\nprint(f"及格人数：{passed_count}")',
+  quiz: {
+    q: "为什么 60 分也被算进及格人数？",
+    options: ["条件是 >= 60，包含 60", "因为 60 是双数", "因为 += 1 会多算一次", "报错"],
+    answer: 0,
+    hint: ">= 是「大于或等于」，60 >= 60 成立。如果改成 > 60，及格人数就只有 2。",
+    reveal: "答案是 >= 包含等号。85、92、60 三个分数都满足，所以计数是 3；58 被跳过。"
+  },
+  lines: [
+    { code: "scores = [85, 58, 92, 60]", text: "四个分数。" },
+    { code: "passed_count = 0", text: "计数器从 0 开始。" },
+    { code: "for score in scores:", text: "每轮取出一个分数，交给 score。" },
+    { code: "    if score >= 60:", text: "缩进 4 格，在循环内部：每个分数都判断一次。" },
+    { code: "        passed_count += 1", text: "缩进 8 格，在 if 内部：成立才加 1，等价于 passed_count = passed_count + 1。" },
+    { code: 'print(f"及格人数：{passed_count}")', text: "循环结束后打印总数 3。" }
+  ],
+  symbols: [
+    { sym: "+= 1", text: "自己加 1 再存回去" },
+    { sym: "嵌套缩进", text: "4 格在循环，8 格在 if" }
+  ]
+},
+{
+  tag: "推导式",
+  title: "一行筛出及格分数",
+  use: "列表推导式把「遍历 + 筛选」压成一行，再用 sum() 求和。",
+  demo: "scores = [85, 58, 92, 60]\npassed_scores = [score for score in scores if score >= 60]\nprint(passed_scores)\nprint(sum(scores))",
+  demoOut: "[85, 92, 60]\n295",
+  target: "scores = [85, 58, 92, 60]\npassed_scores = [score for score in scores if score >= 60]\nprint(passed_scores)\nprint(sum(scores))",
+  quiz: {
+    q: "为什么 passed_scores 的和不是 295？",
+    options: ["58 被条件筛掉了", "sum() 算错了", "列表只能存整数", "报错"],
+    answer: 0,
+    hint: "推导式只保留 >= 60 的分数，58 不在新列表里；新列表的和是 85 + 92 + 60 = 237。",
+    reveal: "答案是 58 被筛掉了。sum(scores) 算的是原列表 295；passed_scores 只有 3 个数，和是 237。"
+  },
+  lines: [
+    { code: "scores = [85, 58, 92, 60]", text: "原始列表。" },
+    { code: "passed_scores = [score for score in scores if score >= 60]", text: "结构是 [要留下的值 for 变量 in 数据 if 条件]，结果是一个新列表。" },
+    { code: "print(passed_scores)", text: "打印筛出来的 [85, 92, 60]。" },
+    { code: "print(sum(scores))", text: "sum 对原列表求和 = 295。" }
+  ],
+  symbols: [
+    { sym: "推导式", text: "遍历 + 筛选 + 生成，一行搞定" },
+    { sym: "sum()", text: "求和" }
+  ]
+},
+{
+  tag: "函数参数",
+  title: "给及格线一个默认值",
+  use: "把及格线写成默认参数：不传就用 60，传了就用你给的数。",
+  demo: 'def get_level(score, pass_score=60):\n    if score >= 90:\n        return "优秀"\n    if score >= pass_score:\n        return "及格"\n    return "待提高"\nprint(get_level(70, pass_score=75))',
+  demoOut: "待提高",
+  target: 'def get_level(score, pass_score=60):\n    if score >= 90:\n        return "优秀"\n    if score >= pass_score:\n        return "及格"\n    return "待提高"\nprint(get_level(70, pass_score=75))',
+  quiz: {
+    q: "把最后一行改成 print(get_level(70))，会打印什么？",
+    options: ["及格", "待提高", "优秀", "报错，少了一个参数"],
+    answer: 0,
+    hint: "不传第二个参数就用默认值 60；70 >= 60 成立，返回「及格」。",
+    reveal: "答案是 及格。默认参数 pass_score=60 让调用时可以省略；传了 pass_score=75 时，70 分就不够，才是「待提高」。"
+  },
+  lines: [
+    { code: "def get_level(score, pass_score=60):", text: "两个参数，第二个带默认值 60，调用时可以省略。" },
+    { code: "    if score >= 90:", text: "90 分以上先返回「优秀」，函数立刻结束。" },
+    { code: '    if score >= pass_score:', text: "这是独立的第二个 if，不是 elif；但上面已经 return，所以到这里说明没到 90。" },
+    { code: '    return "待提高"', text: "兜底：前面都没返回时才执行。" },
+    { code: "print(get_level(70, pass_score=75))", text: "关键字传参：70 给 score、75 给 pass_score，70 < 75 → 待提高。" }
+  ],
+  symbols: [
+    { sym: "pass_score=60", text: "默认参数" },
+    { sym: "pass_score=75", text: "调用时用关键字传值" },
+    { sym: "return", text: "返回并结束本次调用" }
+  ]
+},
+{
+  tag: "类",
+  title: "定义第一个类",
+  use: "类是模板，__init__ 给新对象装上属性，self 指的就是这个对象自己。",
+  demo: 'class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\nstudent = Student("小林", 85)\nprint(student.name)',
+  demoOut: "小林",
+  target: 'class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\nstudent = Student("小林", 85)\nprint(student.name)',
+  quiz: {
+    q: "再写一行 print(student.score)，会打印什么？",
+    options: ["85", "score", "报错", "小林"],
+    answer: 0,
+    hint: "__init__ 里 self.score = score 把 85 存成了属性，用点号就能取出来。",
+    reveal: "答案是 85。创建对象时 Student(\"小林\", 85) 把两个值传进 __init__，分别存成 self.name 和 self.score。"
+  },
+  lines: [
+    { code: "class Student:", text: "定义一个类，类名习惯首字母大写。" },
+    { code: "    def __init__(self, name, score):", text: "初始化方法，创建对象时自动执行；self 指刚创建的那个对象。" },
+    { code: "        self.name = name", text: "把传进来的名字存成属性。" },
+    { code: "        self.score = score", text: "分数同理。" },
+    { code: 'student = Student("小林", 85)', text: "创建实例，两个值传给 __init__（self 由 Python 自动传入）。" },
+    { code: "print(student.name)", text: "点号取属性 → 小林。" }
+  ],
+  symbols: [
+    { sym: "class", text: "定义类" },
+    { sym: "__init__", text: "创建对象时执行" },
+    { sym: "self", text: "当前这个对象" }
+  ]
+},
+{
+  tag: "异常",
+  title: "用 try 接住转换失败",
+  use: "把可能出错的代码放进 try，出错就跳到 except，而不是整段程序崩掉。",
+  demo: 'raw = "缺考"\ntry:\n    score = float(raw)\nexcept ValueError:\n    print("不是有效数字")',
+  demoOut: "不是有效数字",
+  target: 'raw = "缺考"\ntry:\n    score = float(raw)\nexcept ValueError:\n    print("不是有效数字")',
+  quiz: {
+    q: '如果把 raw 改成 "85"，会打印什么？',
+    options: ["什么都不打印", "不是有效数字", "85", "报错"],
+    answer: 0,
+    hint: "转换成功就不会进入 except；try 里也没有 print，所以屏幕上什么都没有。",
+    reveal: "答案是 什么都不打印。float(\"85\") 成功，except 被跳过，这段没有 else 也没有 print，所以没有输出。"
+  },
+  lines: [
+    { code: 'raw = "缺考"', text: "原始文本（中文自动跳过）。" },
+    { code: "try:", text: "尝试执行下面缩进的代码，出错就跳到 except。" },
+    { code: "    score = float(raw)", text: "这行会抛 ValueError，因为「缺考」不是数字。" },
+    { code: "except ValueError:", text: "接住这一类型的错误，程序继续往下走。" },
+    { code: '    print("不是有效数字")', text: "给用户一句能看懂的话。" }
+  ],
+  symbols: [
+    { sym: "try / except", text: "出错也别崩，接住它" },
+    { sym: "ValueError", text: "值不合法（转不成数字）" }
+  ]
+},
+{
+  tag: "验证",
+  title: "用 assert 检查边界",
+  use: "先写预期，再让 assert 替你核对：不成立就直接报错，成立才往下走。",
+  demo: 'def get_level(score):\n    if score >= 90:\n        return "优秀"\n    return "待提高"\nassert get_level(59) == "待提高"\nprint("检查通过")',
+  demoOut: "检查通过",
+  target: 'def get_level(score):\n    if score >= 90:\n        return "优秀"\n    return "待提高"\nassert get_level(59) == "待提高"\nprint("检查通过")',
+  quiz: {
+    q: '如果把断言改成 assert get_level(59) == "及格"，会怎样？',
+    options: ["抛 AssertionError，最后一行不执行", "还是打印 检查通过", "抛 TypeError", "什么都不发生"],
+    answer: 0,
+    hint: "断言不成立会抛 AssertionError 并中断程序，后面的 print 根本不会执行。",
+    reveal: "答案是抛 AssertionError。assert 就是「我断定这里必须为真」，一旦为假立刻报错，所以最后一行不会执行。"
+  },
+  lines: [
+    { code: "def get_level(score):", text: "简化版等级函数，只分两档。" },
+    { code: "    if score >= 90:", text: "90 分以上 → 优秀。" },
+    { code: '    return "待提高"', text: "其余都待提高。注意它缩进 4 格，在 if 外面。" },
+    { code: 'assert get_level(59) == "待提高"', text: "断言：59 分必须是待提高；不成立就抛 AssertionError。" },
+    { code: 'print("检查通过")', text: "所有断言都通过后才会执行这一行。" }
+  ],
+  symbols: [
+    { sym: "assert", text: "断言，用来在开发期检查预期" },
+    { sym: "==", text: "判断相等（= 是赋值）" }
+  ]
+}
+];
+
+/* =========================================================
+   状态与存储（两关共用进度）
+   ========================================================= */
+const KEY = "python-typing-practice-v1";
+const LEVELS = [
+  { name: "第 1 关 · 基础打字", items: DATA },
+  { name: "第 2 关 · 讲义原例", items: DATA2 }
+];
+const TOTAL = DATA.length + DATA2.length;
+
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY));
+    if (raw && typeof raw === "object") {
+      let c = raw.cur;
+      if (typeof c === "number" || c == null) c = { 0: Number(c) || 0, 1: 0 };
+      return { items: raw.items || {}, cur: { 0: Number(c[0]) || 0, 1: Number(c[1]) || 0 } };
+    }
+  } catch (e) { /* 隐私模式忽略 */ }
+  return { items: {}, cur: { 0: 0, 1: 0 } };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { /* 忽略 */ }
+}
+const store = load();
+let level = 0;
+function items() { return LEVELS[level].items; }
+function itemId(lv, i) { return lv === 0 ? String(i) : "c" + i; }
+function itemState(lv, i) { return store.items[itemId(lv, i)] || {}; }
+function isDone(lv, i) { const s = itemState(lv, i); return !!(s.typed && s.quiz); }
+function levelDone(lv) {
+  let n = 0;
+  for (let i = 0; i < LEVELS[lv].items.length; i++) if (isDone(lv, i)) n++;
+  return n;
+}
+function doneCount() { return levelDone(0) + levelDone(1); }
+function mark(lv, i, k) {
+  const id = itemId(lv, i);
+  store.items[id] = Object.assign({}, store.items[id] || {}, { [k]: true });
+  save();
+}
+
+/* =========================================================
+   屏幕键盘
+   ========================================================= */
+const KB_ROWS = [
+  ["`","1","2","3","4","5","6","7","8","9","0","-","="],
+  ["q","w","e","r","t","y","u","i","o","p","[","]","\\"],
+  ["caps","a","s","d","f","g","h","j","k","l",";","'","enter"],
+  ["shift","z","x","c","v","b","n","m",",",".","/","shift2"],
+  ["ctrl","alt","space","alt2","ctrl2"]
+];
+const KB_LABEL = { caps:"Caps", enter:"⏎ Enter", shift:"Shift", shift2:"Shift", ctrl:"Ctrl", ctrl2:"Ctrl", alt:"Alt", alt2:"Alt", space:"space" };
+function buildKeyboard() {
+  const kb = document.getElementById("keyboard");
+  kb.innerHTML = KB_ROWS.map(row =>
+    '<div class="krow">' + row.map(k => {
+      const w = (k === "enter" || k === "caps" || k.startsWith("shift") || k.startsWith("ctrl") || k.startsWith("alt")) ? " wide" : (k === "space" ? " space" : "");
+      return '<div class="key' + w + '" data-key="' + k + '">' + (KB_LABEL[k] || k) + "</div>";
+    }).join("") + "</div>"
+  ).join("");
+}
+/* 字符 → 需要按的键（含 shift） */
+const SHIFTED = { "!":"1","@":"2","#":"3","$":"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",
+  "_":"-","+":"=","{":"[","}":"]","|":"\\",":":";","\"":"'","<":",",">":".","?":"/","~":"`" };
+function keysFor(ch) {
+  if (ch === " ") return ["space"];
+  if (ch === "\n") return ["enter"];
+  if (/[a-z]/.test(ch)) return [ch];
+  if (/[A-Z]/.test(ch)) return ["shift", ch.toLowerCase()];
+  if (/[0-9`\-=\[\]\\;',.\/]/.test(ch)) return [ch];
+  if (SHIFTED[ch]) return ["shift", SHIFTED[ch]];
+  return [];
+}
+function flashKeys(keys, err) {
+  document.querySelectorAll(".key.kb-next, .key.kb-err").forEach(el => el.classList.remove("kb-next", "kb-err"));
+  keys.forEach(k => {
+    document.querySelectorAll('.key[data-key="' + k + '"]').forEach(el => el.classList.add(err ? "kb-err" : "kb-next"));
+  });
+}
+function clearFlash() {
+  document.querySelectorAll(".key.kb-next, .key.kb-err").forEach(el => el.classList.remove("kb-next", "kb-err"));
+}
+
+/* =========================================================
+   练习核心：逐键输入
+   ========================================================= */
+let view = "list";
+let cur = Math.min(Math.max(store.cur[0], 0), DATA.length - 1);
+let pos = 0;            // 已敲对的字符数
+let hits = 0, errs = 0; // 击键统计
+let startedAt = null;   // 本题开始时间
+let timerId = null;
+let finished = false;   // 代码敲完（等待理解题）
+
+const $ = id => document.getElementById(id);
+const chars = () => items()[cur].target;
+const isCJK = ch => ch.charCodeAt(0) > 127;   // 中文等非 ASCII：自动跳过
+
+function setStatus(cls, text) {
+  const c = $("statusChip");
+  c.className = "chip " + cls;
+  $("statusText").textContent = text;
+}
+function updateTopChips() {
+  const d = doneCount();
+  const lvTotal = items().length;
+  $("doneChip").textContent = "🎯 " + d + " / " + TOTAL;
+  $("barFill").style.width = (levelDone(level) / lvTotal * 100) + "%";
+  $("barNum").textContent = levelDone(level) + " / " + lvTotal;
+  $("barLabel").textContent = LEVELS[level].name + " 进度";
+}
+
+/* ---------- 代码大字渲染 ---------- */
+function renderCode() {
+  const target = chars();
+  const lines = target.split("\n");
+  let idx = 0;
+  const span = ch => {
+    let cls = "ch";
+    if (idx < pos) cls += " c-ok";
+    else if (idx === pos) cls += " c-cur";
+    else cls += " c-pend";
+    if (isCJK(ch)) cls += " c-cjk";
+    const i = idx++;
+    const body = ch === "\n" ? "" : (ch === " " ? "&nbsp;" : ch === "&" ? "&amp;" : ch === "<" ? "&lt;" : ch === ">" ? "&gt;" : ch);
+    const nlCls = ch === "\n" ? " nl" : "";
+    return '<span class="' + cls + nlCls + '" data-i="' + i + '">' + body + "</span>";
+  };
+  let html = "";
+  for (let li = 0; li < lines.length; li++) {
+    html += '<div class="cl' + (idx <= pos && pos <= idx + lines[li].length ? " cur-line" : "") + '"><span class="ln">' + (li + 1) + "</span>";
+    for (const ch of lines[li]) html += span(ch);
+    if (li < lines.length - 1) html += span("\n");
+    html += "</div>";
+  }
+  $("codeView").innerHTML = html;
+  const cur = document.querySelector(".c-cur") || document.querySelector(".c-ok:last-of-type");
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest" });
+  $("tProg").textContent = pos + "/" + target.length;
+}
+function refreshNextKey() {
+  if (finished) { clearFlash(); return; }
+  const t = chars();
+  if (pos >= t.length) { clearFlash(); return; }
+  flashKeys(keysFor(t[pos]), false);
+}
+
+/* ---------- 计时与统计 ---------- */
+function tickStats() {
+  if (startedAt === null) return;
+  const sec = (Date.now() - startedAt) / 1000;
+  $("tTime").textContent = sec.toFixed(1) + "s";
+  const wpm = sec > 0 ? Math.round((hits / 5) / (sec / 60)) : 0;
+  $("tWpm").textContent = wpm;
+  $("tAcc").textContent = (hits + errs === 0 ? 100 : Math.round(hits / (hits + errs) * 100)) + "%";
+}
+function startTimer() {
+  if (startedAt !== null) return;
+  startedAt = Date.now();
+  timerId = setInterval(tickStats, 100);
+  setStatus("typing", "TYPING");
+}
+function stopTimer() {
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  tickStats();
+}
+
+/* ---------- 进入 / 离开一题 ---------- */
+function openQuestion(i) {
+  cur = Math.min(Math.max(i, 0), items().length - 1);
+  store.cur[level] = cur;
+  save();
+  view = "train";
+  $("listView").hidden = true;
+  $("trainView").hidden = false;
+  resetQuestion();
+  window.scrollTo({ top: 0 });
+}
+function resetQuestion() {
+  pos = 0; hits = 0; errs = 0; startedAt = null; finished = false;
+  stopTimer();
+  $("tTime").textContent = "0.0s";
+  $("tWpm").textContent = "0";
+  $("tAcc").textContent = "100%";
+  setStatus("ready", "READY");
+  const q = items()[cur];
+  $("qNo").textContent = (level === 0 ? "" : "C") + String(cur + 1).padStart(2, "0");
+  $("qTitle").textContent = q.title;
+  $("qTag").textContent = q.tag;
+  $("useTt").textContent = q.title;
+  $("useText").textContent = q.use;
+  $("doneBar").className = "done-bar";
+  $("doneBar").innerHTML = "";
+  $("quizPanel").hidden = true;
+  $("explainPanel").hidden = true;
+  $("fb3").className = "fb";
+  $("reveal3").className = "reveal";
+  $("zhHint").style.display = /[^\x00-\x7F]/.test(q.target) ? "" : "none";
+  while (pos < q.target.length && isCJK(q.target[pos])) pos++;   // 开头若是中文，直接跳过
+  renderCode();
+  refreshNextKey();
+}
+function showList() {
+  view = "list";
+  stopTimer();
+  clearFlash();
+  $("trainView").hidden = true;
+  $("listView").hidden = false;
+  renderList();
+  updateTopChips();
+  setStatus("ready", "READY");
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- 完成打字 ---------- */
+function finishTyping() {
+  finished = true;
+  stopTimer();
+  clearFlash();
+  setStatus("done", "DONE");
+  renderCode();
+  mark(level, cur, "typed");
+  updateTopChips();
+  const sec = startedAt ? ((Date.now() - startedAt) / 1000) : 0;
+  const wpm = sec > 0 ? Math.round((hits / 5) / (sec / 60)) : 0;
+  const acc = hits + errs === 0 ? 100 : Math.round(hits / (hits + errs) * 100);
+  const bar = $("doneBar");
+  bar.className = "done-bar show";
+  bar.innerHTML = "✓ 全部敲对！用时 " + sec.toFixed(1) + "s · " + wpm + " WPM · 正确率 " + acc + "%　" +
+    '<button class="btn small" id="goQuizBtn">做理解题 →</button>';
+  renderQuiz();
+  $("goQuizBtn").addEventListener("click", () => {
+    $("quizPanel").hidden = false;
+    $("quizPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("quizPanel").hidden = false;
+  setTimeout(() => $("quizPanel").scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+}
+
+/* ---------- 键盘输入 ---------- */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if (view === "train") { e.preventDefault(); showList(); }
+    return;
+  }
+  if (view !== "train" || finished) return;
+
+  if (e.key === "Tab") { e.preventDefault(); resetQuestion(); refreshNextKey(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return; // 组合键放行
+
+  let k = e.key;
+  if (k === "Enter") k = "\n";
+  if (k.length !== 1) return; // Shift / CapsLock 等修饰键忽略
+
+  e.preventDefault(); // 防空格滚屏、防 '/' 快速查找
+  const t = chars();
+  if (pos >= t.length) return;
+
+  startTimer();
+  if (k === t[pos]) {
+    hits++;
+    pos++;
+    afterAdvance();
+  } else {
+    errs++;
+    tickStats();
+    // 当前字符闪红 + 预期键位闪红
+    const el = document.querySelector('.ch[data-i="' + pos + '"]');
+    if (el) {
+      el.classList.remove("err-flash");
+      void el.offsetWidth;
+      el.classList.add("err-flash");
+      setTimeout(() => el.classList.remove("err-flash"), 220);
+    }
+    flashKeys(keysFor(t[pos]), true);
+    setTimeout(() => { if (!finished) refreshNextKey(); }, 260);
+  }
+});
+
+/* 敲对一个字符后：跳过中文（非 ASCII）→ 刷新显示 → 判断是否完成 */
+function afterAdvance() {
+  const t = chars();
+  while (pos < t.length && isCJK(t[pos])) pos++;
+  tickStats();
+  if (pos >= t.length) finishTyping();
+  else { renderCode(); refreshNextKey(); }
+}
+
+/* 中文输入法检测 */
+document.addEventListener("compositionstart", () => $("imeWarn").classList.add("show"));
+document.addEventListener("compositionend", () => setTimeout(() => $("imeWarn").classList.remove("show"), 1500));
+
+/* ---------- 理解题 ---------- */
+function renderQuiz() {
+  const q = items()[cur];
+  $("quizQ").textContent = q.quiz.q;
+  $("opts").innerHTML = q.quiz.options.map((o, i) =>
+    '<button data-opt="' + i + '"><span class="abc">' + "ABCD"[i] + "</span><span>" + o + "</span></button>"
+  ).join("");
+}
+function doSubmit() {
+  const q = items()[cur];
+  const picked = $("opts").querySelector("button.picked");
+  if (!picked) {
+    const fb = $("fb3");
+    fb.className = "fb hint show";
+    fb.textContent = "先选一个选项，再提交。";
+    return;
+  }
+  const idx = Number(picked.dataset.opt);
+  const fb = $("fb3");
+  if (idx === q.quiz.answer) {
+    Array.from($("opts").children).forEach(b => { b.classList.remove("wrong"); b.disabled = true; });
+    picked.classList.add("right");
+    fb.className = "fb ok show";
+    fb.textContent = "✓ 答对了！下面把每行拆开看。";
+    $("reveal3").innerHTML = "<b>正确答案：</b>" + q.quiz.reveal;
+    $("reveal3").classList.add("show");
+    mark(level, cur, "quiz");
+    updateTopChips();
+    renderExplain();
+    $("explainPanel").hidden = false;
+    setTimeout(() => $("explainPanel").scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  } else {
+    Array.from($("opts").children).forEach(b => b.classList.remove("wrong"));
+    picked.classList.add("wrong");
+    fb.className = "fb bad show";
+    fb.textContent = "✗ 不对。原因：" + q.quiz.hint + "\n（答案还没揭晓，换一个选项再试。）";
+  }
+}
+function renderExplain() {
+  const q = items()[cur];
+  $("lineList").innerHTML = q.lines.map(l =>
+    '<div class="line-row"><code>' + l.code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code><p>" + l.text + "</p></div>"
+  ).join("");
+  $("symList").innerHTML = '<span class="sym-h">关键符号：</span>' +
+    q.symbols.map(s => '<span class="sym-item"><b>' + s.sym + "</b>" + s.text + "</span>").join("");
+  $("nextBtn").textContent = cur === items().length - 1 ? "本关完成，看看结果 🎉" : "下一题 →";
+  $("nextNote").textContent = isDone(level, cur) ? "这题打字 + 理解题都完成了。" : "理解题答对后这题才算完成。";
+}
+
+/* ---------- 列表 ---------- */
+function renderList() {
+  $("heroTitle").textContent = LEVELS[level].name;
+  $("heroDesc").textContent = level === 0
+    ? "第 1 关共 18 题，从 print 练到函数。照着敲代码（敲错不前进），全部敲对自动进入理解题，再逐行看懂。"
+    : "第 2 关共 14 题，示例取自讲义《Python 一篇概全》01～12 节的主线代码。代码里的中文会自动跳过，只敲英文和符号。";
+  const tabBtns = document.querySelectorAll("#levelTabs .tab");
+  tabBtns.forEach((b, i) => b.classList.toggle("active", i === level));
+
+  $("qgrid").innerHTML = items().map((d, i) => {
+    const done = isDone(level, i);
+    return '<button class="qcard' + (done ? " done" : "") + '" data-go="' + i + '">' +
+      '<span class="st">' + (done ? "✓" : "▶") + "</span>" +
+      '<div class="no">' + (level === 0 ? "" : "C") + String(i + 1).padStart(2, "0") + "</div>" +
+      '<div class="tt">' + d.title + "</div>" +
+      '<span class="tg">' + d.tag + "</span>" +
+      "</button>";
+  }).join("");
+}
+
+/* ---------- 结算 ---------- */
+function renderSummary() {
+  view = "list";
+  $("trainView").hidden = true;
+  $("listView").hidden = false;
+  const d = levelDone(level);
+  const n = items().length;
+  const list = items().map((q, i) =>
+    '<div class="sum-item' + (isDone(level, i) ? " done" : "") + '"><span class="m">' + (isDone(level, i) ? "✓" : "○") + "</span><span>" +
+    (level === 0 ? "" : "C") + String(i + 1).padStart(2, "0") + " " + q.title + "　<span style='color:#cbd5e1'>· " + q.tag + "</span></span></div>"
+  ).join("");
+  $("qgrid").innerHTML =
+    '<div style="grid-column:1/-1;background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:16px;padding:24px 28px">' +
+      "<h2 style='margin:4px 0 6px;font-size:21px'>" + (d === n ? LEVELS[level].name + " 全部练完，键位稳了 🎉" : "这一关练到这儿") + "</h2>" +
+      "<p style='margin:0;font-size:14px;color:#374151'>本关已完成 <b>" + d + " / " + n + "</b> 题（敲对代码 + 答对理解题才算完成）。没做完的不会丢，随时点题号接着练。</p>" +
+      '<div class="sum-list">' + list + "</div>" +
+      '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
+        '<button class="btn" id="backFirst">回到本关第 1 题重练</button>' +
+        '<button class="btn ghost" id="keepGoing">继续练没做完的</button>' +
+      "</div>" +
+    "</div>";
+  $("backFirst").addEventListener("click", () => openQuestion(0));
+  $("keepGoing").addEventListener("click", () => {
+    let t = 0;
+    for (let i = 0; i < n; i++) { if (!isDone(level, i)) { t = i; break; } }
+    openQuestion(t);
+  });
+  updateTopChips();
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- 点击事件 ---------- */
+document.addEventListener("click", e => {
+  const t = e.target;
+  const btn = t.closest("button");
+  if (btn) btn.blur(); // 防止 Enter 重复触发按钮
+
+  const tab = t.closest("#levelTabs .tab");
+  if (tab) {
+    level = Number(tab.dataset.level);
+    cur = Math.min(store.cur[level], LEVELS[level].items.length - 1);
+    renderList();
+    updateTopChips();
+    window.scrollTo({ top: 0 });
+    return;
+  }
+
+  const card = t.closest(".qcard[data-go]");
+  if (card && !t.closest("#backFirst") && !t.closest("#keepGoing")) { openQuestion(Number(card.dataset.go)); return; }
+  if (t.closest("#backBtn")) { showList(); return; }
+  if (t.closest("#goQuizBtn")) return; // 已单独绑定
+
+  const opt = t.closest("#opts button[data-opt]");
+  if (opt) {
+    if (opt.disabled) return;
+    Array.from($("opts").children).forEach(b => b.classList.remove("picked", "wrong"));
+    opt.classList.add("picked");
+    doSubmit();
+    return;
+  }
+  if (t.closest("#nextBtn")) {
+    if (cur === items().length - 1) renderSummary();
+    else openQuestion(cur + 1);
+    return;
+  }
+  if (t.closest("#resetAll")) {
+    if (confirm("确定清空两关全部练习进度吗？")) {
+      store.items = {}; store.cur = { 0: 0, 1: 0 };
+      save(); cur = 0; level = 0; showList();
+    }
+  }
+});
+
+/* ---------- 启动 ---------- */
+buildKeyboard();
+renderList();
+updateTopChips();
+setStatus("ready", "READY");
+</script>
+</body>
+</html>
