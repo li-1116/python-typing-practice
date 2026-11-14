@@ -314,7 +314,7 @@
 
   <main class="content" id="content">
     <h1 class="site-banner"><span class="py">Python</span> 边学边练</h1>
-    <p class="site-desc">一个可以双击打开的本地练功房：12 章覆盖 Python 基础到测试验证，每章先读一小段知识，再过四关——读代码、亲手打、先猜再看解析、改一点试试。进度会自动保存在这个浏览器里。想深入理解？点代码块右上角的「问 AI」（需自备百炼 Key，不填也不影响阅读练习）。</p>
+    <p class="site-desc">一个可以双击打开的本地练功房：12 章覆盖 Python 基础到测试验证，每章先读一小段知识，再过四关——读代码、亲手打、先猜再看解析、改一点试试。进度会自动保存在这个浏览器里。想深入理解？点代码块右上角的「问 AI」，支持 DeepSeek 或阿里云百炼（自备 Key，不填也不影响阅读练习）。</p>
     <p style="margin:-18px 0 32px"><a class="typing-entry" href="./python-typing.html" style="display:inline-block;padding:8px 16px"><span class="te-title">⌨️ 打开「Python 代码打字练习」</span><span class="te-desc" style="display:block">两关 32 题：基础 18 题 + 讲义原例 14 题</span></a></p>
     <div id="chapters"></div>
   </main>
@@ -322,17 +322,19 @@
   <aside class="ai-panel" id="aiPanel">
     <div class="ai-head">AI 帮助<button class="ai-close" id="aiClose" aria-label="关闭">×</button></div>
     <div class="ai-config">
-      <label>百炼 API Key
+      <label>AI 服务商
+        <select id="aiProvider">
+          <option value="deepseek">DeepSeek（官方）</option>
+          <option value="bailian">阿里云百炼（qwen）</option>
+        </select>
+      </label>
+      <label><span id="aiKeyLabel">DeepSeek API Key</span>
         <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
       </label>
       <label>模型
-        <select id="aiModel">
-          <option value="qwen-turbo">qwen-turbo（便宜）</option>
-          <option value="qwen-plus">qwen-plus</option>
-          <option value="qwen-max">qwen-max（最强）</option>
-        </select>
+        <select id="aiModel"></select>
       </label>
-      <div class="ai-hint">Key 只保存在你自己浏览器里，发送时会连同当前代码一起传给百炼，调用产生你账号的费用。没有 Key 也完全不影响阅读和练习。去 <a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">百炼控制台</a> 申请。</div>
+      <div class="ai-hint" id="aiHint"></div>
     </div>
     <div class="ai-context" id="aiContext">还没有选择代码：点击任意代码块右上角的「问 AI」。</div>
     <div class="ai-chat" id="aiChat"><div class="ai-empty">提问后会显示在这里</div></div>
@@ -1585,18 +1587,75 @@ setupAskAi();
    ========================================================= */
 let aiCtx = null;      // { code, label }
 let aiMsgs = [];       // 对话历史 [{role, content}]
-const AI_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 const AI_SYSTEM = "你是一位耐心的 Python 入门老师。用简体中文回答，面向零基础学员：先直接回答问题，再简短解释原理，不超过 200 字。用户会发来一段教学代码，请围绕这段代码回答，不要展开无关话题。";
+const PROVIDERS = {
+  deepseek: {
+    name: "DeepSeek",
+    url: "https://api.deepseek.com/chat/completions",
+    keyLabel: "DeepSeek API Key",
+    consoleName: "DeepSeek 开放平台",
+    consoleUrl: "https://platform.deepseek.com/api_keys",
+    models: [
+      { v: "deepseek-chat", t: "deepseek-chat（通用，便宜）" },
+      { v: "deepseek-reasoner", t: "deepseek-reasoner（推理更强，慢且贵）" }
+    ]
+  },
+  bailian: {
+    name: "百炼",
+    url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    keyLabel: "百炼 API Key",
+    consoleName: "百炼控制台",
+    consoleUrl: "https://bailian.console.aliyun.com/",
+    models: [
+      { v: "qwen-turbo", t: "qwen-turbo（便宜）" },
+      { v: "qwen-plus", t: "qwen-plus" },
+      { v: "qwen-max", t: "qwen-max（最强）" }
+    ]
+  }
+};
+const AI_CFG_KEY = "python-practice-ai-config-v2";
+const AI_CFG_KEY_OLD = "python-practice-ai-config-v1";
 
 function loadAiConfig() {
-  try { return JSON.parse(localStorage.getItem("python-practice-ai-config-v1")) || {}; }
-  catch (e) { return {}; }
+  let cfg = null;
+  try { cfg = JSON.parse(localStorage.getItem(AI_CFG_KEY)); } catch (e) { cfg = null; }
+  if (cfg && cfg.per) return cfg;
+  // 兼容旧版：旧 Key 属于百炼
+  let old = {};
+  try { old = JSON.parse(localStorage.getItem(AI_CFG_KEY_OLD)) || {}; } catch (e) { old = {}; }
+  return {
+    provider: "deepseek",
+    per: {
+      deepseek: {},
+      bailian: { key: old.key || "", model: old.model || "qwen-turbo" }
+    }
+  };
 }
 function saveAiConfig() {
-  try {
-    localStorage.setItem("python-practice-ai-config-v1",
-      JSON.stringify({ key: document.getElementById("aiKey").value.trim(), model: document.getElementById("aiModel").value }));
-  } catch (e) { /* 隐私模式下忽略 */ }
+  const provider = document.getElementById("aiProvider").value;
+  const cfg = loadAiConfig();
+  cfg.provider = provider;
+  cfg.per = cfg.per || {};
+  cfg.per[provider] = {
+    key: document.getElementById("aiKey").value.trim(),
+    model: document.getElementById("aiModel").value
+  };
+  try { localStorage.setItem(AI_CFG_KEY, JSON.stringify(cfg)); } catch (e) { /* 隐私模式下忽略 */ }
+  return cfg;
+}
+/* 切换服务商：重建模型列表、换 Key、换名称与申请链接 */
+function applyProvider(provider, cfg) {
+  const p = PROVIDERS[provider] || PROVIDERS.deepseek;
+  const sel = document.getElementById("aiModel");
+  sel.innerHTML = p.models.map(m => '<option value="' + m.v + '">' + m.t + "</option>").join("");
+  const saved = (cfg && cfg.per && cfg.per[provider]) || {};
+  if (saved.model && p.models.some(m => m.v === saved.model)) sel.value = saved.model;
+  document.getElementById("aiKey").value = saved.key || "";
+  document.getElementById("aiKeyLabel").textContent = p.keyLabel;
+  document.getElementById("aiHint").innerHTML =
+    "Key 只保存在你自己浏览器里，发送时会连同当前代码一起传给" + p.name +
+    "，调用产生你账号的费用。没有 Key 也完全不影响阅读和练习。去 <a href=\"" + p.consoleUrl +
+    "\" target=\"_blank\" rel=\"noopener\">" + p.consoleName + "</a> 申请。";
 }
 
 /* 给每个代码块包一层，加「问 AI」按钮 */
@@ -1660,12 +1719,14 @@ const PRESETS = {
 
 async function aiSend() {
   const key = document.getElementById("aiKey").value.trim();
-  const model = document.getElementById("aiModel").value;
+  const provider = document.getElementById("aiProvider").value;
+  const prov = PROVIDERS[provider] || PROVIDERS.deepseek;
   const q = document.getElementById("aiInput").value.trim();
   if (!aiCtx) { setAiStatus("先点击某个代码块右上角的「问 AI」，选择要讨论的代码。", "info"); return; }
   if (!q) { setAiStatus("先输入你的问题。", "info"); return; }
-  if (!key) { setAiStatus("请先在上方填写百炼 API Key（只存在你自己的浏览器里）。"); return; }
-  saveAiConfig();
+  if (!key) { setAiStatus("请先在上方填写 " + prov.keyLabel + "（只存在你自己的浏览器里）。"); return; }
+  const cfg = saveAiConfig();
+  const model = (cfg.per[provider] && cfg.per[provider].model) || prov.models[0].v;
   const userContent = `代码（${aiCtx.label}）：\n${aiCtx.code}\n\n问题：${q}`;
   addMsg("user", q);
   aiMsgs.push({ role: "user", content: userContent });
@@ -1673,15 +1734,20 @@ async function aiSend() {
   setAiStatus("思考中…", "info");
   document.getElementById("aiSend").disabled = true;
   try {
-    const resp = await fetch(AI_URL, {
+    const resp = await fetch(prov.url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
       body: JSON.stringify({ model, messages: [{ role: "system", content: AI_SYSTEM }, ...aiMsgs] })
     });
     if (!resp.ok) {
       const t = await resp.text().catch(() => "");
-      if (resp.status === 401) throw new Error("Key 无效或没有权限（401），请检查百炼 API Key。");
-      throw new Error("接口返回 " + resp.status + "：" + t.slice(0, 120));
+      let tip;
+      if (resp.status === 401) tip = "Key 无效或没有权限（401），请到" + prov.consoleName + "核对 " + prov.keyLabel + "。";
+      else if (resp.status === 402) tip = "账号余额不足（402）。请到" + prov.consoleName + "充值后再试。";
+      else if (resp.status === 429) tip = "触发" + prov.name + "限流（429）：等 1～2 分钟再发；若反复出现，请到" + prov.consoleName + "检查额度是否用尽、调用频率是否超限。";
+      else if (resp.status === 400) tip = prov.name + "拒绝了请求（400）：可能是模型名不对或参数有误。" + t.slice(0, 120);
+      else tip = "接口返回 " + resp.status + "：" + t.slice(0, 120);
+      throw new Error(tip);
     }
     const data = await resp.json();
     const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "(空回复)";
@@ -1690,7 +1756,7 @@ async function aiSend() {
     setAiStatus("", "info");
   } catch (err) {
     const hint = (err instanceof TypeError)
-      ? "无法连接到百炼接口。可能原因：网络不通、浏览器拦截了跨域请求，或 Key 刚申请还未生效。请稍后重试。"
+      ? "无法连接到" + prov.name + "接口。可能原因：网络不通、浏览器拦截了跨域请求，或 Key 刚申请还未生效。请稍后重试。"
       : err.message;
     setAiStatus("发送失败：" + hint);
     aiMsgs.pop();  // 失败的这条不留在历史里，改完可以直接重发
@@ -1698,6 +1764,15 @@ async function aiSend() {
     document.getElementById("aiSend").disabled = false;
   }
 }
+
+document.getElementById("aiProvider").addEventListener("change", () => {
+  const cfg = saveAiConfig();            // 先把上一家的 Key/模型存回去
+  const provider = document.getElementById("aiProvider").value;
+  applyProvider(provider, cfg);
+  aiMsgs = [];
+  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
+  setAiStatus("已切换到 " + PROVIDERS[provider].name + "，对话已清空。", "info");
+});
 
 document.getElementById("aiSend").addEventListener("click", aiSend);
 document.getElementById("aiNew").addEventListener("click", () => {
@@ -1716,8 +1791,9 @@ document.querySelectorAll(".ai-presets button").forEach(b => {
 });
 (function restoreAiConfig() {
   const cfg = loadAiConfig();
-  if (cfg.key) document.getElementById("aiKey").value = cfg.key;
-  if (cfg.model) document.getElementById("aiModel").value = cfg.model;
+  const provider = PROVIDERS[cfg.provider] ? cfg.provider : "deepseek";
+  document.getElementById("aiProvider").value = provider;
+  applyProvider(provider, cfg);
 })();
 
 /* =========================================================
@@ -1802,6 +1878,24 @@ async function runSelfTests() {
   document.getElementById("aiInput").value = "再问一个";
   await aiSend();
   ok("AI 面板：调用失败时给出友好提示", document.getElementById("aiStatus").textContent.includes("无法连接"));
+  // T15 服务商切换：模型列表与 Key 名称随之变化，路由地址正确
+  const pSel = document.getElementById("aiProvider");
+  pSel.value = "bailian"; pSel.dispatchEvent(new Event("change"));
+  const bModels = Array.from(document.getElementById("aiModel").options).map(o => o.value).join(",");
+  const bLabel = document.getElementById("aiKeyLabel").textContent;
+  pSel.value = "deepseek"; pSel.dispatchEvent(new Event("change"));
+  const dModels = Array.from(document.getElementById("aiModel").options).map(o => o.value).join(",");
+  ok("AI 面板：切换服务商换模型列表与 Key 名称",
+    bModels.includes("qwen-plus") && dModels.includes("deepseek-chat")
+    && bLabel.includes("百炼") && PROVIDERS.deepseek.url.includes("api.deepseek.com"));
+  // T16 429 限流：给出可操作的人话提示
+  window.fetch = () => Promise.resolve(new Response(
+    JSON.stringify({ error: { message: "You have exceeded your current request limit." } }),
+    { status: 429, headers: { "Content-Type": "application/json" } }));
+  document.getElementById("aiKey").value = "sk-test";
+  document.getElementById("aiInput").value = "再来";
+  await aiSend();
+  ok("AI 面板：429 限流给出人话提示", document.getElementById("aiStatus").textContent.includes("限流"));
   window.fetch = origFetch;
 
   box.textContent = results.join("\n");
