@@ -357,6 +357,7 @@
 
 <div id="selftest-report" style="display:none"></div>
 
+<script src="py-runner.js"></script>
 <script>
 /* =========================================================
    数据：12 章 × 2 练习（内容原创）
@@ -1394,7 +1395,7 @@ function buildChapters() {
       <p class="ch-goal">${ch.goal}</p>
       ${ch.intro.map(p => `<p>${p}</p>`).join("")}
       <div class="scene-tag">${ch.example.scene}</div>
-      <pre class="codeblock">${highlight(ch.example.code)}</pre>
+      <pre class="codeblock" data-run>${highlight(ch.example.code)}</pre>
       <div class="output-label">运行结果：</div>
       <div class="output-block">${escapeHtml(ch.example.output)}</div>
       <p style="font-size:14px;color:#374151">${ch.example.note}</p>
@@ -1442,6 +1443,7 @@ function renderExercise(chNum, ei, ex) {
     <div class="step" data-step="4">
       <div class="step-title"><span class="step-no">4</span>改一点试试 <span class="ok-mark">✓</span></div>
       <div class="modify-prompt">${ex.modify.prompt}</div>
+      <div class="py-edit" data-edit-idx="${flatIdx}"></div>
       <p class="read-story">${ex.modify.q}</p>
       <div class="options" data-modify="${flatIdx}">
         ${ex.modify.options.map((o, i) => `<label><input type="radio" name="modify-${flatIdx}" value="${i}">${escapeHtml(o)}</label>`).join("")
@@ -1582,6 +1584,16 @@ buildToc();
 buildChapters();
 refreshProgress();
 setupAskAi();
+
+/* 给每个「改一点试试」挂上可运行的小编辑器；示例代码块加「▶ 运行」 */
+if (window.PyRun) {
+  document.querySelectorAll(".py-edit").forEach(el => {
+    const item = FLAT[Number(el.dataset.editIdx)];
+    if (!item) return;
+    PyRun.mount(el, { code: item.ex.target, tip: "改完点运行，看看结果和你想的一样吗" });
+  });
+  PyRun.autoMount();
+}
 
 /* =========================================================
    AI 帮助面板（参考站同款：用户自备百炼 Key，浏览器直连）

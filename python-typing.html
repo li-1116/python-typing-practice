@@ -320,6 +320,9 @@
   .sym-h { font-size: 12.5px; color: var(--dim); }
   .sym-item { font-size: 12.5px; background: #f8fafc; border: 1px solid var(--border); border-radius: 99px; padding: 2px 11px; color: #475569; }
   .sym-item b { color: var(--accent); font-family: Consolas, Menlo, monospace; margin-right: 5px; }
+  .try-zone { margin-top: 16px; padding-top: 13px; border-top: 1px dashed var(--border); }
+  .try-head { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .try-head span { font-weight: 400; color: var(--dim); font-size: 12px; margin-left: 8px; }
 
   .next-row { display: flex; align-items: center; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
   .next-note { font-size: 12.5px; color: #9ca3af; }
@@ -467,6 +470,10 @@
       <div class="step-tag">STEP 3 · 逐行看懂</div>
       <div class="lines" id="lineList"></div>
       <div class="sym" id="symList"></div>
+      <div class="try-zone">
+        <div class="try-head">▶ 自己跑一遍 <span>不用信我写的，直接改数字看输出</span></div>
+        <div id="pyTry"></div>
+      </div>
       <div class="next-row">
         <button class="btn" id="nextBtn"></button>
         <span class="next-note" id="nextNote"></span>
@@ -480,6 +487,7 @@
   </section>
 </div>
 
+<script src="py-runner.js"></script>
 <script>
 /* =========================================================
    18 道题（代码全部为 ASCII，可被键盘直接敲出）
@@ -1651,6 +1659,9 @@ function renderExplain() {
     q.symbols.map(s => '<span class="sym-item"><b>' + s.sym + "</b>" + s.text + "</span>").join("");
   $("nextBtn").textContent = cur === items().length - 1 ? "本关完成，看看结果 🎉" : "下一题 →";
   $("nextNote").textContent = isDone(level, cur) ? "这题打字 + 理解题都完成了。" : "理解题答对后这题才算完成。";
+  if (window.PyRun) {
+    PyRun.mount($("pyTry"), { code: q.target, tip: "改完点运行，看看输出变了没有" });
+  }
 }
 
 /* ---------- 列表 ---------- */
