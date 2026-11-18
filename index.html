@@ -275,14 +275,26 @@
   .ai-compose:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
   .ai-compose #aiInput {
     border: none; background: transparent; padding: 2px 2px 0; margin-top: 0;
-    min-height: 52px; resize: vertical; font-size: 13px; line-height: 1.6;
+    min-height: 52px; resize: none; font-size: 13px; line-height: 1.6;
   }
   .ai-compose .ai-presets button { padding: 4px 10px; font-size: 11.5px; }
   .ai-compose-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .ai-enter-tip { font-size: 10.5px; color: #94a3b8; }
-  .ai-actions { display: flex; gap: 8px; }
-  .ai-actions .btn { margin-top: 0; padding: 6px 14px; font-size: 13px; }
-  .ai-actions .btn.ghost { padding: 6px 10px; }
+  .ai-actions { display: flex; align-items: center; gap: 8px; }
+  /* WorkBuddy 风格：框内右下角圆形发送按钮，新对话是旁边的文字链接 */
+  .ai-send-btn {
+    flex: none; width: 34px; height: 34px; border-radius: 50%; border: none;
+    cursor: pointer; background: var(--accent); color: #fff; font-size: 17px;
+    font-weight: 700; line-height: 1; display: grid; place-items: center;
+    transition: background .15s;
+  }
+  .ai-send-btn:hover { background: #1d4ed8; }
+  .ai-send-btn[disabled] { background: #93b4f5; cursor: wait; }
+  .ai-new-link {
+    border: none; background: none; cursor: pointer; padding: 4px 6px;
+    color: var(--text-dim); font-size: 12.5px; font-family: inherit;
+  }
+  .ai-new-link:hover { color: var(--text); }
   .ai-status { font-size: 12px; color: var(--bad); min-height: 16px; line-height: 1.5; }
   .ai-status.info { color: var(--text-dim); }
 
@@ -331,6 +343,10 @@
     body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 360px; }
   }
   @media (max-width: 1149px) { .sb-toggle { display: none; } }
+  /* 两边同时收起：这条特异性更高，防止 ai-collapsed 规则把侧边栏顶回来 */
+  @media (min-width: 1150px) {
+    body.sb-collapsed.ai-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  }
 
   /* ---------- 划词气泡 ---------- */
   .sel-pop {
@@ -478,8 +494,8 @@
       <div class="ai-compose-bar">
         <span class="ai-enter-tip">Enter 发送 · Shift+Enter 换行</span>
         <div class="ai-actions">
-          <button class="btn ghost" id="aiNew">新对话</button>
-          <button class="btn" id="aiSend">发送问题</button>
+          <button class="ai-new-link" id="aiNew">新对话</button>
+          <button class="ai-send-btn" id="aiSend" title="发送（Enter）" aria-label="发送问题">↑</button>
         </div>
       </div>
     </div>
