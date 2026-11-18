@@ -35,6 +35,17 @@
 
 第 2 关保留讲义原文，代码里的中文（如 `"小林"`）显示为橙色虚线并**自动跳过**——只敲 ASCII 骨架，这样示例不需要改写，也符合真实写代码的输入习惯。
 
+## AI 帮助（可选）
+
+代码块右上角「问 AI」，可围绕当前代码提问。支持两家服务商，面板顶部下拉切换：
+
+| 服务商 | 模型 | Key 申请 |
+| --- | --- | --- |
+| DeepSeek（默认） | `deepseek-chat`、`deepseek-reasoner` | https://platform.deepseek.com/api_keys |
+| 阿里云百炼 | `qwen-turbo`、`qwen-plus`、`qwen-max` | https://bailian.console.aliyun.com/ |
+
+Key 只保存在浏览器 localStorage 里，不写进项目文件，两家的 Key 分开保存、互不覆盖。没有 Key 完全不影响阅读和练习；遇到 429／402／401 会给出对应的处理提示。
+
 ## 本地运行
 
 不需要安装任何依赖，也不需要服务器：
