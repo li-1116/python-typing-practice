@@ -252,6 +252,18 @@
     border-radius: 8px; padding: 7px 9px; color: var(--text-dim);
   }
   .ai-context b { color: var(--accent); }
+  /* 本地对话记录条：只在当前这段有消息时出现 */
+  .ai-hist {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: #94a3b8; padding: 0 2px 2px;
+  }
+  .ai-hist[hidden] { display: none; }
+  .ai-hist span { flex: 1 1 auto; }
+  .ai-hist button {
+    border: none; background: none; padding: 2px 4px; cursor: pointer;
+    font-size: 11px; color: #7c8b9c; font-family: inherit; border-radius: 5px;
+  }
+  .ai-hist button:hover { color: var(--accent); background: var(--accent-soft); }
   .ai-chat { flex: 1 1 auto; min-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
   .ai-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 14px 0; }
   .ai-msg {
@@ -483,6 +495,11 @@
       </span>
     </div>
     <div class="ai-context" id="aiContext" hidden></div>
+    <div class="ai-hist" id="aiHist" hidden>
+      <span id="aiHistText"></span>
+      <button type="button" id="aiExport" title="把已保存的对话导出成 txt 文件">导出</button>
+      <button type="button" id="aiClear" title="清空当前这段对话（不影响其它代码的对话）">清空</button>
+    </div>
     <div class="ai-chat" id="aiChat"><div class="ai-empty">点「问 AI」或在正文划词选中代码后，提问会显示在这里</div></div>
     <div class="ai-compose">
       <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？"></textarea>
@@ -1820,6 +1837,88 @@ const PROVIDERS = {
 const AI_CFG_KEY = "python-practice-ai-config-v2";
 const AI_CFG_KEY_OLD = "python-practice-ai-config-v1";
 
+/* ---------- 对话记录（只存本机浏览器，不上传） ---------- */
+const AI_CHAT_KEY = "python-practice-ai-chat-v1";
+const AI_CHAT_MAX_SEGS = 3;    // 最多记住 3 段代码的对话
+const AI_CHAT_MAX_MSGS = 40;   // 每段最多 40 条消息（约 20 轮问答）
+
+/* 用 label + 代码内容算一个短指纹，同一段代码就落在同一格里 */
+function chatSegId(code, label) {
+  const s = String(label || "") + "§" + String(code || "");
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+function loadChatStore() {
+  try {
+    const s = JSON.parse(localStorage.getItem(AI_CHAT_KEY));
+    if (s && Array.isArray(s.segs)) return { segs: s.segs, last: s.last || null };
+  } catch (e) { /* 损坏就当空的 */ }
+  return { segs: [], last: null };
+}
+
+let chatStore = loadChatStore();
+
+function saveChatStore() {
+  try {
+    localStorage.setItem(AI_CHAT_KEY, JSON.stringify(chatStore));
+  } catch (e) {
+    /* 隐私模式或存储已满：静默降级，不影响正常提问 */
+  }
+}
+
+/* 取某段已存的对话（返回 {label, code, msgs, at} 或 null） */
+function getChatSeg(id) {
+  return chatStore.segs.find(s => s.id === id) || null;
+}
+
+/* 把当前对话写回存储；没消息就把这段删掉，不占位置 */
+function persistChat() {
+  if (!aiCtx) return;
+  const id = chatSegId(aiCtx.code, aiCtx.label);
+  const rest = chatStore.segs.filter(s => s.id !== id);
+  if (!aiMsgs.length) {
+    chatStore.segs = rest;
+  } else {
+    const seg = {
+      id: id,
+      label: aiCtx.label,
+      code: aiCtx.code,
+      msgs: aiMsgs.slice(-AI_CHAT_MAX_MSGS),
+      at: Date.now()
+    };
+    chatStore.segs = [seg].concat(rest).slice(0, AI_CHAT_MAX_SEGS);
+    chatStore.last = id;
+  }
+  saveChatStore();
+  paintHistBar();
+}
+
+/* 对话记录条：显示条数，只有这段有消息时才出现 */
+function paintHistBar() {
+  const bar = document.getElementById("aiHist");
+  const txt = document.getElementById("aiHistText");
+  if (!bar || !txt) return;
+  if (!aiMsgs.length) { bar.hidden = true; return; }
+  const rounds = aiMsgs.filter(m => m.role === "user").length;
+  txt.textContent = "本机已存 " + aiMsgs.length + " 条 · " + rounds + " 轮问答";
+  bar.hidden = false;
+}
+
+/* 把 aiMsgs 整段重绘到对话区（恢复历史时用） */
+function renderMsgs() {
+  const chat = document.getElementById("aiChat");
+  chat.innerHTML = "";
+  if (!aiMsgs.length) {
+    chat.innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
+    paintHistBar();
+    return;
+  }
+  aiMsgs.forEach(m => addMsg(m.role, m.shown || m.content));
+  paintHistBar();
+}
+
 function loadAiConfig() {
   let cfg = null;
   try { cfg = JSON.parse(localStorage.getItem(AI_CFG_KEY)); } catch (e) { cfg = null; }
@@ -1889,15 +1988,16 @@ function setupAskAi() {
 
 function setAiContext(code, label) {
   aiCtx = { code, label };
-  aiMsgs = [];
-  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
+  const seg = getChatSeg(chatSegId(code, label));
+  aiMsgs = seg && seg.msgs ? seg.msgs.slice() : [];
+  renderMsgs();
   const chip = document.getElementById("aiContext");
   chip.hidden = false;
   chip.innerHTML = "当前代码：<b></b>";
   chip.querySelector("b").textContent = label;
   const input = document.getElementById("aiInput");
   if (!input.value.trim()) input.value = "请用初学者能懂的话，逐行解释这段代码。";
-  setAiStatus("", "info");
+  setAiStatus(aiMsgs.length ? "已恢复这段代码的 " + aiMsgs.length + " 条对话记录（只存在你本机）。" : "", "info");
 }
 
 function addMsg(role, text) {
@@ -1939,7 +2039,7 @@ async function aiSend() {
   const model = (cfg.per[provider] && cfg.per[provider].model) || prov.models[0].v;
   const userContent = `代码（${aiCtx.label}）：\n${aiCtx.code}\n\n问题：${q}`;
   addMsg("user", q);
-  aiMsgs.push({ role: "user", content: userContent });
+  aiMsgs.push({ role: "user", content: userContent, shown: q });
   document.getElementById("aiInput").value = "";
   setAiStatus("思考中…", "info");
   document.getElementById("aiSend").disabled = true;
@@ -1947,7 +2047,11 @@ async function aiSend() {
     const resp = await fetch(prov.url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
-      body: JSON.stringify({ model, messages: [{ role: "system", content: AI_SYSTEM }, ...aiMsgs] })
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "system", content: AI_SYSTEM }]
+          .concat(aiMsgs.map(m => ({ role: m.role, content: m.content })))
+      })
     });
     if (!resp.ok) {
       const t = await resp.text().catch(() => "");
@@ -1961,9 +2065,10 @@ async function aiSend() {
     }
     const data = await resp.json();
     const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "(空回复)";
-    aiMsgs.push({ role: "assistant", content: text });
+    aiMsgs.push({ role: "assistant", content: text, shown: text });
     addMsg("assistant", text);
     setAiStatus("", "info");
+    persistChat();
   } catch (err) {
     const hint = (err instanceof TypeError)
       ? "无法连接到" + prov.name + "接口。可能原因：网络不通、浏览器拦截了跨域请求，或 Key 刚申请还未生效。请稍后重试。"
@@ -1980,8 +2085,9 @@ document.getElementById("aiProvider").addEventListener("change", () => {
   const provider = document.getElementById("aiProvider").value;
   applyProvider(provider, cfg);
   aiMsgs = [];
-  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
-  setAiStatus("已切换到 " + PROVIDERS[provider].name + "，对话已清空。", "info");
+  renderMsgs();
+  persistChat();
+  setAiStatus("已切换到 " + PROVIDERS[provider].name + "，当前对话已清空（其它代码的记录还在）。", "info");
 });
 
 document.getElementById("aiSend").addEventListener("click", aiSend);
@@ -1997,8 +2103,57 @@ aiInputEl.addEventListener("keydown", e => {
 
 document.getElementById("aiNew").addEventListener("click", () => {
   aiMsgs = [];
-  document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
-  setAiStatus("已开始新对话（当前代码不变）。", "info");
+  renderMsgs();
+  persistChat();          // 当前这段的记录一并清掉，下次点进来不会再弹出来
+  setAiStatus("已开始新对话（当前代码不变；其它代码的记录还在）。", "info");
+});
+
+/* 清空当前这段对话的记录 */
+document.getElementById("aiClear").addEventListener("click", () => {
+  aiMsgs = [];
+  renderMsgs();
+  persistChat();
+  setAiStatus("已清空这段代码的对话记录。", "info");
+});
+
+/* 导出：把保存着的对话（最多 3 段）导成 txt */
+document.getElementById("aiExport").addEventListener("click", () => {
+  const pad = n => String(n).padStart(2, "0");
+  const fmt = t => {
+    const d = new Date(t || Date.now());
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+      " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
+  const lines = ["Python 练习网站 · AI 对话记录", "导出时间：" + fmt(Date.now()),
+    "说明：只包含你自己浏览器里保存的记录，不包含 API Key。", ""];
+  const segs = chatStore.segs.slice();
+  if (aiMsgs.length && aiCtx) {
+    const id = chatSegId(aiCtx.code, aiCtx.label);
+    if (!segs.some(s => s.id === id)) {
+      segs.unshift({ id: id, label: aiCtx.label, code: aiCtx.code, msgs: aiMsgs, at: Date.now() });
+    }
+  }
+  if (!segs.length) { setAiStatus("还没有可导出的对话。", "info"); return; }
+  segs.forEach((seg, i) => {
+    lines.push("=".repeat(52));
+    lines.push("[" + (i + 1) + "] " + seg.label + "    " + fmt(seg.at));
+    lines.push("-".repeat(52));
+    lines.push("代码：");
+    lines.push(seg.code);
+    lines.push("");
+    seg.msgs.forEach(m => {
+      lines.push((m.role === "user" ? "我：" : "AI：") + (m.shown || m.content));
+      lines.push("");
+    });
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "python-ai-chat-" + fmt(Date.now()).replace(/[: ]/g, "-") + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  setAiStatus("已导出 " + segs.length + " 段对话。", "info");
 });
 document.getElementById("aiFab").addEventListener("click", () => document.body.classList.toggle("ai-open"));
 /* × 按钮：手机上是关抽屉；宽屏上是收起整个右栏（和左侧目录一样的收法） */
@@ -2077,6 +2232,16 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
     chip.hidden = false;
     chip.innerHTML = "还没有选择要讨论的代码。点任意代码块右上角的「问 AI」，或在正文里划词选中一段文字；想用 AI 提问，点右上角 ⚙ 填 Key（不填也完全不影响阅读和练习）。";
   }
+})();
+
+/* 打开页面时，把上次讨论的那段代码连同对话一起接回来（自检模式下不恢复，保持环境干净） */
+(function restoreLastChat() {
+  if (location.search.indexOf("selftest=1") !== -1) return;
+  if (!chatStore.last) return;
+  const seg = getChatSeg(chatStore.last);
+  if (!seg || !seg.msgs || !seg.msgs.length) return;
+  setAiContext(seg.code, seg.label);
+  /* 面板若是收起状态，先不打扰，等用户自己打开 */
 })();
 
 /* =========================================================
