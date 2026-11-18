@@ -87,7 +87,7 @@
   .hamburger { display: none; }
 
   /* ---------- 正文 ---------- */
-  .content { padding: 40px 48px 90px; max-width: 860px; }
+  .content { padding: 40px 48px 90px; max-width: 860px; margin: 0 auto; }
   .site-banner {
     font-size: 26px; font-weight: 800; margin: 0 0 6px;
   }
@@ -237,6 +237,7 @@
     padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;
   }
   .ai-head { font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+  .ai-head-btns { display: flex; align-items: center; gap: 6px; }
   .ai-close { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text-dim); line-height: 1; }
   .ai-config label { display: block; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
   .ai-config input[type=password], .ai-config select, #aiInput {
@@ -251,7 +252,7 @@
     border-radius: 8px; padding: 7px 9px; color: var(--text-dim);
   }
   .ai-context b { color: var(--accent); }
-  .ai-chat { flex: 0 1 auto; min-height: 60px; max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .ai-chat { flex: 1 1 auto; min-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
   .ai-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 14px 0; }
   .ai-msg {
     border-radius: 10px; padding: 8px 11px; font-size: 13px; line-height: 1.65;
@@ -265,9 +266,23 @@
     border: 1px solid var(--accent); background: #fff; color: var(--accent);
   }
   .ai-presets button:hover { background: var(--accent-soft); }
-  #aiInput { min-height: 64px; resize: vertical; }
+  /* 输入区：参考聊天应用的圆角卡片，工具都在框内 */
+  .ai-compose {
+    background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    padding: 9px 10px 8px; display: flex; flex-direction: column; gap: 7px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .05);
+  }
+  .ai-compose:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .ai-compose #aiInput {
+    border: none; background: transparent; padding: 2px 2px 0; margin-top: 0;
+    min-height: 52px; resize: vertical; font-size: 13px; line-height: 1.6;
+  }
+  .ai-compose .ai-presets button { padding: 4px 10px; font-size: 11.5px; }
+  .ai-compose-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ai-enter-tip { font-size: 10.5px; color: #94a3b8; }
   .ai-actions { display: flex; gap: 8px; }
-  .ai-actions .btn { margin-top: 0; flex: 1; padding: 7px 10px; }
+  .ai-actions .btn { margin-top: 0; padding: 6px 14px; font-size: 13px; }
+  .ai-actions .btn.ghost { padding: 6px 10px; }
   .ai-status { font-size: 12px; color: var(--bad); min-height: 16px; line-height: 1.5; }
   .ai-status.info { color: var(--text-dim); }
 
@@ -310,7 +325,6 @@
   @media (min-width: 769px) {
     body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr); }
     body.sb-collapsed .sidebar { padding-left: 0; padding-right: 0; border-right-color: transparent; }
-    body.sb-collapsed .content { padding-left: 60px; }
   }
   body.sb-collapsed .sb-toggle { left: 10px; }
   @media (min-width: 1150px) {
@@ -358,21 +372,45 @@
   .sp-note { font-size: 11px; color: var(--text-dim); margin-top: 7px; line-height: 1.5; }
   .sp-note a { color: var(--accent); }
 
-  /* ---------- AI 配置折叠 ---------- */
-  .ai-cfg { border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+  /* ---------- AI 配置：右上角圆形按钮 + 下拉 ---------- */
+  .ai-cfg { position: relative; }
   .ai-cfg summary {
-    cursor: pointer; font-size: 12.5px; padding: 7px 10px; color: var(--text-dim);
-    list-style: none; display: flex; align-items: center; gap: 6px;
+    cursor: pointer; user-select: none; list-style: none;
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+    background: #fff; display: flex; align-items: center; justify-content: center;
+    position: relative; font-size: 14px; color: var(--text-dim);
   }
   .ai-cfg summary::-webkit-details-marker { display: none; }
-  .ai-cfg summary::before { content: "⚙"; font-size: 12px; }
-  .ai-cfg summary:hover { color: var(--text); }
-  .ai-cfg[open] summary { border-bottom: 1px solid var(--border); color: var(--text); }
-  .ai-cfg .ai-config { padding: 10px 10px 11px; }
+  .ai-cfg summary:hover { color: var(--text); border-color: #94a3b8; }
+  .ai-cfg .st {
+    position: absolute; top: -2px; right: -2px; width: 9px; height: 9px;
+    border-radius: 50%; border: 2px solid var(--bg-soft);
+  }
+  .ai-cfg .st.on { background: #10b981; }
+  .ai-cfg .st.off { background: #f59e0b; }
+  .ai-cfg-pop {
+    position: absolute; right: 0; top: calc(100% + 8px); width: 250px;
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .16); padding: 12px 12px 11px; z-index: 50;
+  }
+  .ai-cfg[open] summary { color: var(--text); border-color: var(--accent); }
+  .ai-cfg .ai-config { padding: 0; }
   .ai-cfg .ai-config label:last-of-type { margin-bottom: 0; }
-  .ai-cfg .st { font-size: 11.5px; padding: 0 7px; border-radius: 99px; }
-  .ai-cfg .st.on { color: #0f766e; background: #ccfbf1; }
-  .ai-cfg .st.off { color: #b45309; background: #fef3c7; }
+
+  /* 右侧 AI 面板：宽屏可整体收起 */
+  .ai-reopen {
+    display: none; position: fixed; top: 50%; right: 0; z-index: 35;
+    transform: translateY(-50%); writing-mode: vertical-rl; letter-spacing: .18em;
+    padding: 16px 6px; border: 1px solid var(--border); border-right: none;
+    border-radius: 10px 0 0 10px; background: var(--bg-soft); color: var(--text-dim);
+    font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .ai-reopen:hover { color: var(--text); background: #fff; }
+  @media (min-width: 1150px) {
+    body.ai-collapsed .layout { grid-template-columns: 270px minmax(0, 1fr) 0; }
+    body.ai-collapsed .ai-panel { display: none; }
+    body.ai-collapsed .ai-reopen { display: block; }
+  }
 </style>
 </head>
 <body>
@@ -403,40 +441,53 @@
   </main>
 
   <aside class="ai-panel" id="aiPanel">
-    <div class="ai-head">AI 帮助<button class="ai-close" id="aiClose" aria-label="关闭">×</button></div>
-    <details class="ai-cfg" id="aiCfg">
-      <summary>AI 配置 <span class="st off" id="aiCfgState">未填写 Key</span></summary>
-      <div class="ai-config">
-        <label>AI 服务商
-          <select id="aiProvider">
-            <option value="deepseek">DeepSeek（官方）</option>
-            <option value="bailian">阿里云百炼（qwen）</option>
-          </select>
-        </label>
-        <label><span id="aiKeyLabel">DeepSeek API Key</span>
-          <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
-        </label>
-        <label>模型
-          <select id="aiModel"></select>
-        </label>
-        <div class="ai-hint" id="aiHint"></div>
-      </div>
-    </details>
-    <div class="ai-context" id="aiContext">还没有选择代码：点击任意代码块右上角的「问 AI」，或在正文里选中一段文字。</div>
-    <div class="ai-chat" id="aiChat"><div class="ai-empty">提问后会显示在这里</div></div>
-    <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？（Enter 发送，Shift+Enter 换行）"></textarea>
-    <div class="ai-presets">
-      <button data-preset="explain">讲解这段代码</button>
-      <button data-preset="edge">检查边界情况</button>
-      <button data-preset="practice">给我练习</button>
+    <div class="ai-head">AI 帮助
+      <span class="ai-head-btns">
+        <details class="ai-cfg" id="aiCfg">
+          <summary title="AI 配置（服务商 / Key / 模型）">⚙<span class="st off" id="aiCfgState"></span></summary>
+          <div class="ai-cfg-pop">
+            <div class="ai-config">
+              <label>AI 服务商
+                <select id="aiProvider">
+                  <option value="deepseek">DeepSeek（官方）</option>
+                  <option value="bailian">阿里云百炼（qwen）</option>
+                </select>
+              </label>
+              <label><span id="aiKeyLabel">DeepSeek API Key</span>
+                <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
+              </label>
+              <label>模型
+                <select id="aiModel"></select>
+              </label>
+              <div class="ai-hint" id="aiHint"></div>
+            </div>
+          </div>
+        </details>
+        <button class="ai-close" id="aiClose" aria-label="收起AI面板" title="收起">×</button>
+      </span>
     </div>
-    <div class="ai-actions">
-      <button class="btn" id="aiSend">发送问题</button>
-      <button class="btn ghost" id="aiNew">新对话</button>
+    <div class="ai-context" id="aiContext" hidden></div>
+    <div class="ai-chat" id="aiChat"><div class="ai-empty">点「问 AI」或在正文划词选中代码后，提问会显示在这里</div></div>
+    <div class="ai-compose">
+      <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？"></textarea>
+      <div class="ai-presets">
+        <button data-preset="explain">讲解这段代码</button>
+        <button data-preset="edge">检查边界情况</button>
+        <button data-preset="practice">给我练习</button>
+      </div>
+      <div class="ai-compose-bar">
+        <span class="ai-enter-tip">Enter 发送 · Shift+Enter 换行</span>
+        <div class="ai-actions">
+          <button class="btn ghost" id="aiNew">新对话</button>
+          <button class="btn" id="aiSend">发送问题</button>
+        </div>
+      </div>
     </div>
     <div class="ai-status" id="aiStatus"></div>
   </aside>
 </div>
+
+<button class="ai-reopen" id="aiReopen" title="展开 AI 帮助">AI 帮助</button>
 
 <button class="ai-fab" id="aiFab" aria-label="打开AI帮助">AI 帮助</button>
 
@@ -1526,7 +1577,7 @@ function renderExercise(chNum, ei, ex) {
 
     <div class="step" data-step="3">
       <div class="step-title"><span class="step-no">3</span>先猜，再看解析 <span class="ok-mark">✓</span></div>
-      <p class="read-story">${ex.guess.q}</p>
+      <p class="read-story">${ex.guess.q || "先猜一猜输出是哪个。"}</p>
       <div class="options" data-quiz="${flatIdx}">
         ${ex.guess.options.map((o, i) => `<label><input type="radio" name="quiz-${flatIdx}" value="${i}">${escapeHtml(o)}</label>`).join("")}
       </div>
@@ -1539,7 +1590,7 @@ function renderExercise(chNum, ei, ex) {
       <div class="step-title"><span class="step-no">4</span>改一点试试 <span class="ok-mark">✓</span></div>
       <div class="modify-prompt">${ex.modify.prompt}</div>
       <div class="py-edit" data-edit-idx="${flatIdx}"></div>
-      <p class="read-story">${ex.modify.q}</p>
+      <p class="read-story">${ex.modify.q || "改完点上面的「运行」，对照输出结果选答案。"}</p>
       <div class="options" data-modify="${flatIdx}">
         ${ex.modify.options.map((o, i) => `<label><input type="radio" name="modify-${flatIdx}" value="${i}">${escapeHtml(o)}</label>`).join("")
   }
@@ -1649,6 +1700,15 @@ document.addEventListener("click", e => {
     const sel = document.querySelector(`input[name="modify-${idx}"]:checked`);
     const fb = document.querySelector(`[data-fb="modify-${idx}"]`);
     if (!sel) { fb.className = "feedback info"; fb.textContent = "先选一个答案再检查。"; return; }
+    /* 保护：题目判的是「改成 XXX」那种改法；如果编辑框里不是这个改法，先提醒对齐，不直接判错 */
+    const exM = FLAT[idx].ex.modify;
+    const taM = document.querySelector(`.py-edit[data-edit-idx="${idx}"] textarea.py-code`);
+    const want = (exM.prompt || "").match(/改成\s*([^，。？?！,]+)/);
+    if (taM && want && !taM.value.includes(want[1].trim())) {
+      fb.className = "feedback info";
+      fb.textContent = "先别急着选：这道题判的是题目要求的那种改法——「" + want[1].trim() + "」。你编辑框里的代码现在不是这样，所以运行结果和答案对不上。把代码改成题目要求的，点「运行」，再对照输出选答案。";
+      return;
+    }
     const r = answerQuiz(idx, +sel.value, "modify");
     if (r.correct) btn.textContent = "查看解析";
   }
@@ -1816,6 +1876,7 @@ function setAiContext(code, label) {
   aiMsgs = [];
   document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
   const chip = document.getElementById("aiContext");
+  chip.hidden = false;
   chip.innerHTML = "当前代码：<b></b>";
   chip.querySelector("b").textContent = label;
   const input = document.getElementById("aiInput");
@@ -1924,7 +1985,29 @@ document.getElementById("aiNew").addEventListener("click", () => {
   setAiStatus("已开始新对话（当前代码不变）。", "info");
 });
 document.getElementById("aiFab").addEventListener("click", () => document.body.classList.toggle("ai-open"));
-document.getElementById("aiClose").addEventListener("click", () => document.body.classList.remove("ai-open"));
+/* × 按钮：手机上是关抽屉；宽屏上是收起整个右栏（和左侧目录一样的收法） */
+document.getElementById("aiClose").addEventListener("click", () => {
+  if (window.innerWidth >= 1150) {
+    document.body.classList.add("ai-collapsed");
+    try { localStorage.setItem("python-practice-aipanel-v1", "collapsed"); } catch (e) {}
+  } else {
+    document.body.classList.remove("ai-open");
+  }
+});
+document.getElementById("aiReopen").addEventListener("click", () => {
+  document.body.classList.remove("ai-collapsed");
+  try { localStorage.setItem("python-practice-aipanel-v1", "open"); } catch (e) {}
+});
+(function restoreAiPanel() {
+  try {
+    if (localStorage.getItem("python-practice-aipanel-v1") === "collapsed") document.body.classList.add("ai-collapsed");
+  } catch (e) {}
+})();
+/* 点面板外其它地方时，收起 ⚙ 配置下拉 */
+document.addEventListener("click", e => {
+  const cfg = document.getElementById("aiCfg");
+  if (cfg.open && !cfg.contains(e.target)) cfg.open = false;
+});
 
 /* 快捷提问：配好 Key 且已选上下文时，一点就发；否则先填进输入框并提示 */
 document.querySelectorAll(".ai-presets button").forEach(b => {
@@ -1952,14 +2035,19 @@ function openAiCfg() {
   if (!key.value.trim()) key.focus();
 }
 
-/* 配置区摘要上的状态标签 */
+/* 配置按钮上的状态圆点（绿=就绪，黄=没 Key），悬停看文字说明 */
 function paintCfgState() {
   const st = document.getElementById("aiCfgState");
   const key = document.getElementById("aiKey").value.trim();
   const provider = document.getElementById("aiProvider").value;
   const p = PROVIDERS[provider] || PROVIDERS.deepseek;
   st.className = "st " + (key ? "on" : "off");
-  st.textContent = key ? (p.name + " 已就绪") : "未填写 Key";
+  st.title = key ? (p.name + " 已就绪") : "未填写 Key";
+  /* 配好 Key 且还没选代码时，收起引导文字，让面板保持干净 */
+  if (key && !aiCtx) {
+    const chip = document.getElementById("aiContext");
+    if (!chip.querySelector("b")) chip.hidden = true;
+  }
 }
 document.getElementById("aiKey").addEventListener("input", paintCfgState);
 (function restoreAiConfig() {
@@ -1967,6 +2055,12 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
   const provider = PROVIDERS[cfg.provider] ? cfg.provider : "deepseek";
   document.getElementById("aiProvider").value = provider;
   applyProvider(provider, cfg);
+  /* 没配 Key：面板里显示一条引导；配了就保持干净，只显示对话 */
+  if (!document.getElementById("aiKey").value.trim()) {
+    const chip = document.getElementById("aiContext");
+    chip.hidden = false;
+    chip.innerHTML = "还没有选择要讨论的代码。点任意代码块右上角的「问 AI」，或在正文里划词选中一段文字；想用 AI 提问，点右上角 ⚙ 填 Key（不填也完全不影响阅读和练习）。";
+  }
 })();
 
 /* =========================================================
@@ -1977,6 +2071,7 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
   const bodyBox = document.getElementById("spBody");
   if (!pop || !bodyBox) return;
   let cache = null;   // { text, code, label, rect }
+  let lastMouse = { x: 0, y: 0 };
 
   function hidePop() {
     pop.hidden = true;
@@ -2025,7 +2120,7 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
   }
 
   function show() {
-    const next = collect();
+    const next = collect() || collectFromTextarea();
     if (!next) { hidePop(); return; }
     cache = next;
     bodyBox.hidden = true;
@@ -2034,8 +2129,34 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
     placePop();
   }
 
+  /* 可编辑代码框（.py-code textarea）里的划词：window.getSelection 拿不到，要用 selectionStart/End */
+  function collectFromTextarea() {
+    if (!lastMouse.target || !lastMouse.target.closest) return null;
+    const tas = document.querySelectorAll("textarea.py-code");
+    for (const ta of tas) {
+      if (!ta.contains(lastMouse.target) && lastMouse.target !== ta) continue;
+      const s = ta.selectionStart, e2 = ta.selectionEnd;
+      if (s === e2) continue;
+      const text = ta.value.slice(s, e2).replace(/\s+$/, "");
+      if (!text.trim()) continue;
+      const ex = ta.closest(".exercise");
+      const sec = ta.closest("section.chapter");
+      const label = ex
+        ? (ex.querySelector(".ex-badge").textContent + " · " + ex.querySelector(".ex-title").textContent)
+        : (sec ? sec.querySelector(".ch-title").textContent.trim() : "编辑器里的代码");
+      return {
+        text: text.trim(),
+        code: ta.value,
+        label: label,
+        rect: { left: lastMouse.x, top: lastMouse.y - 6, bottom: lastMouse.y + 6, width: 1, height: 12 }
+      };
+    }
+    return null;
+  }
+
   document.addEventListener("mouseup", e => {
     if (pop.contains(e.target)) return;
+    lastMouse = { x: e.clientX, y: e.clientY, target: e.target };
     setTimeout(show, 0);
   });
   document.addEventListener("touchend", e => {
