@@ -31,17 +31,21 @@
   }
 
   /* ---------- 布局 ---------- */
-  .layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+  .layout {
+    display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh;
+    transition: grid-template-columns .22s ease;
+  }
   @media (min-width: 1150px) {
     .layout { grid-template-columns: 270px minmax(0, 1fr) 360px; }
   }
 
   .sidebar {
     position: sticky; top: 0;
-    height: 100vh; overflow-y: auto;
+    height: 100vh; overflow-y: auto; overflow-x: hidden; min-width: 0;
     background: var(--bg-soft);
     border-right: 1px solid var(--border);
     padding: 20px 16px;
+    transition: padding .22s ease, border-color .22s ease;
   }
   .brand { font-size: 19px; font-weight: 700; margin: 4px 4px 4px; letter-spacing: .5px; }
   .brand .py { color: var(--accent); }
@@ -292,10 +296,88 @@
   }
 
   #selftest-report { padding: 20px; font-family: monospace; font-size: 13px; background: #fffbe6; }
+
+  /* ---------- 侧边栏收起 ---------- */
+  .sb-toggle {
+    position: fixed; top: 16px; left: 236px; z-index: 31;
+    width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    border: 1px solid var(--border); background: #fff; color: var(--text-dim);
+    cursor: pointer; font-size: 12px; line-height: 1; display: grid; place-items: center;
+    box-shadow: 0 2px 8px rgba(16,24,40,.08);
+    transition: left .22s ease, color .15s, border-color .15s;
+  }
+  .sb-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  @media (min-width: 769px) {
+    body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr); }
+    body.sb-collapsed .sidebar { padding-left: 0; padding-right: 0; border-right-color: transparent; }
+    body.sb-collapsed .content { padding-left: 60px; }
+  }
+  body.sb-collapsed .sb-toggle { left: 10px; }
+  @media (min-width: 1150px) {
+    body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 360px; }
+  }
+  @media (max-width: 1149px) { .sb-toggle { display: none; } }
+
+  /* ---------- 划词气泡 ---------- */
+  .sel-pop {
+    position: fixed; z-index: 60; width: max-content; max-width: min(480px, 92vw);
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.18); overflow: hidden;
+  }
+  .sel-pop[hidden] { display: none; }
+  .sp-acts { display: flex; gap: 6px; padding: 6px; align-items: center; }
+  .sp-acts button {
+    border: 1px solid var(--accent); background: #fff; color: var(--accent);
+    font-size: 12px; padding: 4px 10px; border-radius: 7px; cursor: pointer;
+    font-family: inherit; white-space: nowrap;
+  }
+  .sp-acts button:hover { background: var(--accent-soft); }
+  .sp-acts button.zh { border-color: #0f766e; color: #0f766e; }
+  .sp-acts button.zh:hover { background: #ccfbf1; }
+  .sp-acts .sp-x { border: none; color: var(--text-dim); padding: 3px 5px; margin-left: auto; }
+  .sp-acts .sp-x:hover { background: none; color: var(--text); }
+  .sp-body {
+    border-top: 1px solid var(--border); padding: 8px 10px 9px;
+    max-height: 40vh; overflow: auto; background: var(--bg-soft);
+  }
+  .sp-body[hidden] { display: none; }
+  .sp-row { display: grid; grid-template-columns: minmax(0,1fr) 16px minmax(0,1.15fr); gap: 6px; align-items: baseline; margin: 5px 0; }
+  .sp-row code {
+    font-family: Consolas, Menlo, monospace; font-size: 11.5px; background: #fff;
+    border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px;
+    white-space: pre; overflow-x: auto; color: var(--code-bg);
+  }
+  .sp-row .arw { color: var(--text-dim); text-align: center; font-size: 11px; }
+  .sp-row .zh { color: #0f766e; font-size: 12.5px; line-height: 1.5; }
+  .sp-words { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sp-words span {
+    background: #fff; border: 1px solid var(--border); border-radius: 99px;
+    padding: 1px 9px; font-size: 11.5px; color: var(--text-dim);
+  }
+  .sp-words b { color: #0f766e; font-weight: 600; margin-left: 3px; }
+  .sp-note { font-size: 11px; color: var(--text-dim); margin-top: 7px; line-height: 1.5; }
+  .sp-note a { color: var(--accent); }
+
+  /* ---------- AI 配置折叠 ---------- */
+  .ai-cfg { border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+  .ai-cfg summary {
+    cursor: pointer; font-size: 12.5px; padding: 7px 10px; color: var(--text-dim);
+    list-style: none; display: flex; align-items: center; gap: 6px;
+  }
+  .ai-cfg summary::-webkit-details-marker { display: none; }
+  .ai-cfg summary::before { content: "⚙"; font-size: 12px; }
+  .ai-cfg summary:hover { color: var(--text); }
+  .ai-cfg[open] summary { border-bottom: 1px solid var(--border); color: var(--text); }
+  .ai-cfg .ai-config { padding: 10px 10px 11px; }
+  .ai-cfg .ai-config label:last-of-type { margin-bottom: 0; }
+  .ai-cfg .st { font-size: 11.5px; padding: 0 7px; border-radius: 99px; }
+  .ai-cfg .st.on { color: #0f766e; background: #ccfbf1; }
+  .ai-cfg .st.off { color: #b45309; background: #fef3c7; }
 </style>
 </head>
 <body>
 <button class="hamburger" id="hamburger" aria-label="打开目录">☰</button>
+<button class="sb-toggle" id="sbToggle" aria-label="收起/展开目录" title="收起/展开左侧目录">⟨</button>
 <div class="overlay" id="overlay"></div>
 
 <div class="layout">
@@ -322,29 +404,32 @@
 
   <aside class="ai-panel" id="aiPanel">
     <div class="ai-head">AI 帮助<button class="ai-close" id="aiClose" aria-label="关闭">×</button></div>
-    <div class="ai-config">
-      <label>AI 服务商
-        <select id="aiProvider">
-          <option value="deepseek">DeepSeek（官方）</option>
-          <option value="bailian">阿里云百炼（qwen）</option>
-        </select>
-      </label>
-      <label><span id="aiKeyLabel">DeepSeek API Key</span>
-        <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
-      </label>
-      <label>模型
-        <select id="aiModel"></select>
-      </label>
-      <div class="ai-hint" id="aiHint"></div>
-    </div>
-    <div class="ai-context" id="aiContext">还没有选择代码：点击任意代码块右上角的「问 AI」。</div>
+    <details class="ai-cfg" id="aiCfg">
+      <summary>AI 配置 <span class="st off" id="aiCfgState">未填写 Key</span></summary>
+      <div class="ai-config">
+        <label>AI 服务商
+          <select id="aiProvider">
+            <option value="deepseek">DeepSeek（官方）</option>
+            <option value="bailian">阿里云百炼（qwen）</option>
+          </select>
+        </label>
+        <label><span id="aiKeyLabel">DeepSeek API Key</span>
+          <input type="password" id="aiKey" placeholder="sk-..." autocomplete="off">
+        </label>
+        <label>模型
+          <select id="aiModel"></select>
+        </label>
+        <div class="ai-hint" id="aiHint"></div>
+      </div>
+    </details>
+    <div class="ai-context" id="aiContext">还没有选择代码：点击任意代码块右上角的「问 AI」，或在正文里选中一段文字。</div>
     <div class="ai-chat" id="aiChat"><div class="ai-empty">提问后会显示在这里</div></div>
+    <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？（Enter 发送，Shift+Enter 换行）"></textarea>
     <div class="ai-presets">
       <button data-preset="explain">讲解这段代码</button>
       <button data-preset="edge">检查边界情况</button>
       <button data-preset="practice">给我练习</button>
     </div>
-    <textarea id="aiInput" placeholder="问点什么，比如：为什么要写 days + 1？"></textarea>
     <div class="ai-actions">
       <button class="btn" id="aiSend">发送问题</button>
       <button class="btn ghost" id="aiNew">新对话</button>
@@ -357,6 +442,16 @@
 
 <div id="selftest-report" style="display:none"></div>
 
+<div class="sel-pop" id="selPop" hidden>
+  <div class="sp-acts">
+    <button type="button" data-sp="ai">🤖 问 AI</button>
+    <button type="button" class="zh" data-sp="zh">🀄 翻译</button>
+    <button type="button" class="sp-x" id="spClose" aria-label="关闭">×</button>
+  </div>
+  <div class="sp-body" id="spBody" hidden></div>
+</div>
+
+<script src="glossary.js"></script>
 <script src="py-runner.js"></script>
 <script>
 /* =========================================================
@@ -1577,6 +1672,26 @@ document.getElementById("toc").addEventListener("click", e => {
   if (e.target.closest("a")) document.body.classList.remove("nav-open");
 });
 
+/* ---------- 宽屏：侧边栏收起 / 展开 ---------- */
+(function setupSidebarToggle() {
+  const KEY = "python-practice-sidebar-v1";
+  const btn = document.getElementById("sbToggle");
+  function paint() {
+    const collapsed = document.body.classList.contains("sb-collapsed");
+    btn.textContent = collapsed ? "⟩" : "⟨";
+    btn.title = collapsed ? "展开左侧目录" : "收起左侧目录";
+  }
+  try {
+    if (localStorage.getItem(KEY) === "collapsed") document.body.classList.add("sb-collapsed");
+  } catch (e) { /* 隐私模式忽略 */ }
+  paint();
+  btn.addEventListener("click", () => {
+    const collapsed = document.body.classList.toggle("sb-collapsed");
+    try { localStorage.setItem(KEY, collapsed ? "collapsed" : "open"); } catch (e) {}
+    paint();
+  });
+})();
+
 /* =========================================================
    启动
    ========================================================= */
@@ -1669,6 +1784,7 @@ function applyProvider(provider, cfg) {
     "Key 只保存在你自己浏览器里，发送时会连同当前代码一起传给" + p.name +
     "，调用产生你账号的费用。没有 Key 也完全不影响阅读和练习。去 <a href=\"" + p.consoleUrl +
     "\" target=\"_blank\" rel=\"noopener\">" + p.consoleName + "</a> 申请。";
+  if (typeof paintCfgState === "function") paintCfgState();
 }
 
 /* 给每个代码块包一层，加「问 AI」按钮 */
@@ -1737,7 +1853,11 @@ async function aiSend() {
   const q = document.getElementById("aiInput").value.trim();
   if (!aiCtx) { setAiStatus("先点击某个代码块右上角的「问 AI」，选择要讨论的代码。", "info"); return; }
   if (!q) { setAiStatus("先输入你的问题。", "info"); return; }
-  if (!key) { setAiStatus("请先在上方填写 " + prov.keyLabel + "（只存在你自己的浏览器里）。"); return; }
+  if (!key) {
+    openAiCfg();
+    setAiStatus("请先在「AI 配置」里填 " + prov.keyLabel + "（只存在你自己的浏览器里）。");
+    return;
+  }
   const cfg = saveAiConfig();
   const model = (cfg.per[provider] && cfg.per[provider].model) || prov.models[0].v;
   const userContent = `代码（${aiCtx.label}）：\n${aiCtx.code}\n\n问题：${q}`;
@@ -1788,6 +1908,16 @@ document.getElementById("aiProvider").addEventListener("change", () => {
 });
 
 document.getElementById("aiSend").addEventListener("click", aiSend);
+
+/* 输入框：Enter 直接发送，Shift+Enter 换行（中文输入法选词时不误发） */
+const aiInputEl = document.getElementById("aiInput");
+aiInputEl.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    if (!document.getElementById("aiSend").disabled) aiSend();
+  }
+});
+
 document.getElementById("aiNew").addEventListener("click", () => {
   aiMsgs = [];
   document.getElementById("aiChat").innerHTML = '<div class="ai-empty">提问后会显示在这里</div>';
@@ -1795,18 +1925,169 @@ document.getElementById("aiNew").addEventListener("click", () => {
 });
 document.getElementById("aiFab").addEventListener("click", () => document.body.classList.toggle("ai-open"));
 document.getElementById("aiClose").addEventListener("click", () => document.body.classList.remove("ai-open"));
+
+/* 快捷提问：配好 Key 且已选上下文时，一点就发；否则先填进输入框并提示 */
 document.querySelectorAll(".ai-presets button").forEach(b => {
   b.addEventListener("click", () => {
     const input = document.getElementById("aiInput");
     input.value = PRESETS[b.dataset.preset];
+    const hasKey = !!document.getElementById("aiKey").value.trim();
+    if (hasKey) {
+      if (aiCtx) { aiSend(); return; }
+      openAiCfg();
+      setAiStatus("先在正文里选中一段文字，或点代码块右上角的「问 AI」，再点快捷问题。", "info");
+      return;
+    }
+    openAiCfg();
     input.focus();
+    setAiStatus("快捷问题已填好。第一次用要先在「AI 配置」里填 Key。", "info");
   });
 });
+
+/* 展开配置区并聚焦 Key（没配过 Key 时的默认动作） */
+function openAiCfg() {
+  const cfg = document.getElementById("aiCfg");
+  cfg.open = true;
+  const key = document.getElementById("aiKey");
+  if (!key.value.trim()) key.focus();
+}
+
+/* 配置区摘要上的状态标签 */
+function paintCfgState() {
+  const st = document.getElementById("aiCfgState");
+  const key = document.getElementById("aiKey").value.trim();
+  const provider = document.getElementById("aiProvider").value;
+  const p = PROVIDERS[provider] || PROVIDERS.deepseek;
+  st.className = "st " + (key ? "on" : "off");
+  st.textContent = key ? (p.name + " 已就绪") : "未填写 Key";
+}
+document.getElementById("aiKey").addEventListener("input", paintCfgState);
 (function restoreAiConfig() {
   const cfg = loadAiConfig();
   const provider = PROVIDERS[cfg.provider] ? cfg.provider : "deepseek";
   document.getElementById("aiProvider").value = provider;
   applyProvider(provider, cfg);
+})();
+
+/* =========================================================
+   划词工具：在正文里选中一段 → 问 AI / 本地翻译
+   ========================================================= */
+(function setupSelectionTools() {
+  const pop = document.getElementById("selPop");
+  const bodyBox = document.getElementById("spBody");
+  if (!pop || !bodyBox) return;
+  let cache = null;   // { text, code, label, rect }
+
+  function hidePop() {
+    pop.hidden = true;
+    bodyBox.hidden = true;
+    bodyBox.innerHTML = "";
+    cache = null;
+  }
+
+  function placePop() {
+    if (!cache) return;
+    const rect = cache.rect;
+    pop.style.left = "0px";
+    pop.style.top = "0px";
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    const left = Math.min(Math.max(10, rect.left), Math.max(10, window.innerWidth - w - 10));
+    let top = rect.top - h - 8;
+    if (top < 10) top = Math.min(rect.bottom + 8, Math.max(10, window.innerHeight - h - 12));
+    pop.style.left = left + "px";
+    pop.style.top = top + "px";
+  }
+
+  function collect() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+    const text = sel.toString().replace(/\s+$/, "");
+    if (!text.trim()) return null;
+    const range = sel.getRangeAt(0);
+    const node = range.commonAncestorContainer;
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    if (!el || !el.closest("#content")) return null;
+    if (el.closest("textarea, input, .sel-pop")) return null;
+    const rect = range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) return null;
+
+    const pre = el.closest("pre.codeblock");
+    let code = text, label = "我选中的一段文字";
+    if (pre) {
+      code = pre.textContent;
+      const ex = pre.closest(".exercise");
+      const sec = pre.closest("section.chapter");
+      label = ex
+        ? (ex.querySelector(".ex-badge").textContent + " · " + ex.querySelector(".ex-title").textContent)
+        : (sec ? sec.querySelector(".ch-title").textContent.trim() : "示例代码");
+    }
+    return { text: text.trim(), code: code, label: label, rect: rect };
+  }
+
+  function show() {
+    const next = collect();
+    if (!next) { hidePop(); return; }
+    cache = next;
+    bodyBox.hidden = true;
+    bodyBox.innerHTML = "";
+    pop.hidden = false;
+    placePop();
+  }
+
+  document.addEventListener("mouseup", e => {
+    if (pop.contains(e.target)) return;
+    setTimeout(show, 0);
+  });
+  document.addEventListener("touchend", e => {
+    if (pop.contains(e.target)) return;
+    setTimeout(show, 140);
+  });
+  document.addEventListener("mousedown", e => {
+    if (!pop.hidden && !pop.contains(e.target)) hidePop();
+  });
+  document.addEventListener("scroll", () => { if (!pop.hidden) hidePop(); }, true);
+  document.getElementById("spClose").addEventListener("click", hidePop);
+
+  pop.addEventListener("click", e => {
+    if (e.target.closest("[data-sp-ai]")) { e.preventDefault(); askAi(); return; }
+    const b = e.target.closest("[data-sp]");
+    if (!b || !cache) return;
+    if (b.dataset.sp === "zh") showGloss();
+    else askAi();
+  });
+
+  function askAi() {
+    if (!cache) return;
+    const q = cache.text.length > 70 ? cache.text.slice(0, 70) + "…" : cache.text;
+    setAiContext(cache.code, cache.label);
+    document.getElementById("aiInput").value = "请解释我选中的这段：「" + q + "」";
+    if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
+    hidePop();
+    setTimeout(() => document.getElementById("aiInput").focus(), 120);
+  }
+
+  function showGloss() {
+    if (!cache || !window.PyGloss) return;
+    const r = PyGloss.translate(cache.text);
+    let html = "";
+    if (r.kind === "code" || r.kind === "name") {
+      r.lines.forEach(l => {
+        html += '<div class="sp-row"><code>' + escapeHtml(l.src) + '</code>' +
+                '<span class="arw">→</span><span class="zh">' + escapeHtml(l.zh) + '</span></div>';
+      });
+    } else if (r.kind === "sentence" && r.words.length) {
+      html += '<div class="sp-words">' + r.words.map(w =>
+        '<span>' + escapeHtml(w.w) + '<b>' + escapeHtml(w.zh) + '</b></span>').join("") + '</div>';
+    }
+    if (r.note) {
+      html += '<div class="sp-note">' + escapeHtml(r.note) +
+        (r.kind === "sentence" || r.kind === "name" ? ' <a href="#" data-sp-ai="1">让 AI 解释 →</a>' : '') +
+        '</div>';
+    }
+    bodyBox.innerHTML = html || '<div class="sp-note">这段没东西可翻，试试多选一点。</div>';
+    bodyBox.hidden = false;
+    placePop();
+  }
 })();
 
 /* =========================================================
