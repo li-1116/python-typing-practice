@@ -131,6 +131,19 @@
     font-family: Consolas, Menlo, monospace; font-size: 13.5px; white-space: pre;
   }
   .output-label { font-size: 12px; color: var(--text-dim); margin: 10px 0 2px; }
+  /* 示例运行结果：默认折叠，先猜再看 */
+  .out-fold { margin: 10px 0 4px; }
+  .out-fold summary {
+    display: inline-block; font-size: 13px; color: #6b7280; cursor: pointer;
+    user-select: none; padding: 6px 14px; border: 1px dashed var(--border);
+    border-radius: 8px; background: #fff; list-style: none;
+  }
+  .out-fold summary::-webkit-details-marker { display: none; }
+  .out-fold summary::before { content: "▸ 看运行结果"; color: var(--accent); font-weight: 600; }
+  .out-fold[open] summary::before { content: "▾ 收起结果"; }
+  .out-fold summary:hover { color: var(--accent); border-color: var(--accent); }
+  .out-fold summary small { font-weight: 400; color: #9ca3af; margin-left: 6px; }
+  .out-fold .output-block { margin-top: 8px; }
 
   /* ---------- 练习卡片 ---------- */
   .exercise {
@@ -1575,8 +1588,10 @@ function buildChapters() {
       ${ch.intro.map(p => `<p>${p}</p>`).join("")}
       <div class="scene-tag">${ch.example.scene}</div>
       <pre class="codeblock" data-run>${highlight(ch.example.code)}</pre>
-      <div class="output-label">运行结果：</div>
-      <div class="output-block">${escapeHtml(ch.example.output)}</div>
+      <details class="out-fold">
+        <summary><small>先自己猜一遍，再点开对照</small></summary>
+        <div class="output-block">${escapeHtml(ch.example.output)}</div>
+      </details>
       <p style="font-size:14px;color:#374151">${ch.example.note}</p>
       ${exHtml}
     </section>`;
