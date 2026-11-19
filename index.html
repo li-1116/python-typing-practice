@@ -367,12 +367,15 @@
   .ai-status.info { color: var(--text-dim); }
 
   .code-wrap { position: relative; }
-  .ask-ai {
-    position: absolute; top: 8px; right: 10px; z-index: 2;
+  .ask-ai, .copy-code {
+    position: absolute; top: 8px; z-index: 2;
     font-size: 11px; padding: 2px 9px; border-radius: 12px; cursor: pointer;
     border: 1px solid #475569; background: rgba(30, 41, 59, .85); color: #cbd5e1;
   }
-  .ask-ai:hover { color: #fff; border-color: #94a3b8; }
+  .ask-ai { right: 10px; }
+  .copy-code { right: 134px; }
+  .ask-ai:hover, .copy-code:hover { color: #fff; border-color: #94a3b8; }
+  .copy-code.done { background: #16a34a; color: #fff; border-color: #16a34a; }
 
   .ai-fab { display: none; }
   @media (max-width: 1149px) {
@@ -2135,6 +2138,25 @@ function setupAskAi() {
       if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
     });
     wrap.appendChild(btn);
+    /* 复制按钮：拷贝代码块原文 */
+    const cp = document.createElement("button");
+    cp.className = "copy-code";
+    cp.type = "button";
+    cp.textContent = "复制";
+    cp.addEventListener("click", () => {
+      const code = pre.textContent;
+      const done = () => {
+        cp.textContent = "✓ 已复制";
+        cp.classList.add("done");
+        setTimeout(() => { cp.textContent = "复制"; cp.classList.remove("done"); }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));
+      } else {
+        fallbackCopy(code, done);
+      }
+    });
+    wrap.appendChild(cp);
   });
 }
 
