@@ -249,6 +249,7 @@
   /* ---------- AI 帮助面板 ---------- */
   .ai-panel {
     position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    overscroll-behavior: contain; /* 滚到底不再把滚动传给页面，防止中间正文被滚走 */
     border-left: 1px solid var(--border); background: var(--bg-soft);
     padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;
   }
@@ -290,7 +291,7 @@
     font-size: 11px; color: #7c8b9c; font-family: inherit; border-radius: 5px;
   }
   .ai-hist button:hover { color: var(--accent); background: var(--accent-soft); }
-  .ai-chat { flex: 1 1 auto; min-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .ai-chat { flex: 1 1 auto; min-height: 100px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; }
   .ai-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 14px 0; }
   .ai-msg {
     border-radius: 10px; padding: 8px 11px; font-size: 13px; line-height: 1.65;
