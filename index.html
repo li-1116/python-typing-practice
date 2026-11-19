@@ -2135,7 +2135,7 @@ function setupAskAi() {
       if (ex) label = ex.querySelector(".ex-badge").textContent + " · " + ex.querySelector(".ex-title").textContent;
       else if (sec) label = sec.querySelector(".ch-title").textContent.trim();
       setAiContext(pre.textContent, label);
-      if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
+      openAiPanel();
     });
     wrap.appendChild(btn);
     /* 复制按钮：拷贝代码块原文 */
@@ -2158,6 +2158,17 @@ function setupAskAi() {
     });
     wrap.appendChild(cp);
   });
+}
+
+/* 无论面板处于什么状态（宽屏被收起 / 窄屏抽屉关着），点「问 AI」都直接展开并聚焦输入框 */
+function openAiPanel() {
+  document.body.classList.remove("ai-collapsed");
+  try { localStorage.setItem("python-practice-aipanel-v1", "open"); } catch (e) {}
+  if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
+  setTimeout(() => {
+    const input = document.getElementById("aiInput");
+    if (input) input.focus();
+  }, 120);
 }
 
 function setAiContext(code, label) {
@@ -2599,7 +2610,7 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
     const q = cache.text.length > 70 ? cache.text.slice(0, 70) + "…" : cache.text;
     setAiContext(cache.code, cache.label);
     document.getElementById("aiInput").value = "请解释我选中的这段：「" + q + "」";
-    if (window.innerWidth <= 1149) document.body.classList.add("ai-open");
+    openAiPanel();
     hidePop();
     setTimeout(() => document.getElementById("aiInput").focus(), 120);
   }
