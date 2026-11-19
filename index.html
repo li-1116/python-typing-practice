@@ -144,6 +144,7 @@
   .out-fold summary:hover { color: var(--accent); border-color: var(--accent); }
   .out-fold summary small { font-weight: 400; color: #9ca3af; margin-left: 6px; }
   .out-fold .output-block { margin-top: 8px; }
+  .ex-note { font-size: 14px; color: #374151; margin: 6px 0 14px; }
 
   /* ---------- 练习卡片 ---------- */
   .exercise {
@@ -1591,8 +1592,8 @@ function buildChapters() {
       <details class="out-fold">
         <summary><small>先自己猜一遍，再点开对照</small></summary>
         <div class="output-block">${escapeHtml(ch.example.output)}</div>
+        <p class="ex-note">${ch.example.note}</p>
       </details>
-      <p style="font-size:14px;color:#374151">${ch.example.note}</p>
       ${exHtml}
     </section>`;
   }).join("");
