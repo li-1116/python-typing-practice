@@ -36,7 +36,9 @@
     transition: grid-template-columns .22s ease;
   }
   @media (min-width: 1150px) {
-    .layout { grid-template-columns: 270px minmax(0, 1fr) 360px; }
+    /* --ai-w 由拖拽把手实时调整（320~720px），默认 400 */
+    .layout { grid-template-columns: 270px minmax(0, 1fr) var(--ai-w, 400px); }
+    .layout.resizing { transition: none; }
   }
 
   .sidebar {
@@ -250,6 +252,16 @@
     border-left: 1px solid var(--border); background: var(--bg-soft);
     padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;
   }
+  /* 面板左缘拖拽把手：调宽度用，宽屏专属 */
+  .ai-grip {
+    position: fixed; top: 0; height: 100vh; width: 8px; z-index: 45;
+    cursor: col-resize;
+  }
+  .ai-grip::after {
+    content: ""; position: absolute; left: 3px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 56px; border-radius: 3px; background: transparent; transition: background .15s;
+  }
+  .ai-grip:hover::after, .ai-grip.on::after { background: var(--accent); opacity: .55; }
   .ai-head { font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
   .ai-head-btns { display: flex; align-items: center; gap: 6px; }
   .ai-close { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text-dim); line-height: 1; }
@@ -286,6 +298,36 @@
   }
   .ai-msg.user { background: var(--accent-soft); align-self: flex-end; }
   .ai-msg.assistant { background: #fff; border: 1px solid var(--border); align-self: flex-start; }
+  /* AI 回答的 markdown 渲染态：外层恢复正常折行，代码块不折行改横向滚动 */
+  .ai-msg.assistant.ai-md { white-space: normal; }
+  .ai-msg.assistant.ai-md p { margin: 0 0 7px; }
+  .ai-msg.assistant.ai-md p:last-child { margin-bottom: 0; }
+  .ai-msg.assistant.ai-md strong { color: var(--text); }
+  .ai-msg.assistant.ai-md ul, .ai-msg.assistant.ai-md ol { margin: 0 0 7px; padding-left: 18px; }
+  .ai-msg.assistant.ai-md li { margin-bottom: 3px; }
+  .ai-msg.assistant.ai-md .ai-h { font-weight: 700; font-size: 13.5px; margin: 8px 0 5px; }
+  .ai-inline {
+    font-family: Consolas, Menlo, monospace; font-size: 12px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1px 5px; color: #0f172a;
+  }
+  .ai-code { position: relative; margin: 8px 0; }
+  .ai-code pre {
+    background: #0f172a; color: #e2e8f0; border-radius: 8px;
+    padding: 10px 12px; margin: 0; font: 12.5px/1.6 Consolas, Menlo, monospace;
+    white-space: pre; overflow-x: auto; max-width: 100%;
+  }
+  .ai-code .ai-lang {
+    position: absolute; top: 6px; left: 12px; font-size: 10.5px;
+    color: #64748b; user-select: none; pointer-events: none;
+  }
+  .ai-code .ai-copy {
+    position: absolute; top: 6px; right: 6px; border: none; cursor: pointer;
+    font-size: 11px; padding: 3px 9px; border-radius: 6px;
+    background: rgba(255,255,255,.12); color: #cbd5e1;
+  }
+  .ai-code .ai-copy:hover { background: rgba(255,255,255,.22); color: #fff; }
+  .ai-code .ai-copy.done { background: #16a34a; color: #fff; }
   .ai-presets { display: flex; gap: 6px; flex-wrap: wrap; }
   .ai-presets button {
     font-size: 12px; padding: 5px 11px; border-radius: 14px; cursor: pointer;
@@ -366,7 +408,7 @@
   }
   body.sb-collapsed .sb-toggle { left: 10px; }
   @media (min-width: 1150px) {
-    body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) 360px; }
+    body.sb-collapsed .layout { grid-template-columns: 0 minmax(0, 1fr) var(--ai-w, 400px); }
   }
   @media (max-width: 1149px) { .sb-toggle { display: none; } }
   /* 两边同时收起：这条特异性更高，防止 ai-collapsed 规则把侧边栏顶回来 */
@@ -535,6 +577,8 @@
 </div>
 
 <button class="ai-reopen" id="aiReopen" title="展开 AI 帮助">AI 帮助</button>
+
+<div class="ai-grip" id="aiGrip" title="拖动调宽度；双击恢复默认" hidden></div>
 
 <button class="ai-fab" id="aiFab" aria-label="打开AI帮助">AI 帮助</button>
 
@@ -1769,6 +1813,92 @@ function looseCodeIncludes(hay, needle) {
   return norm(hay).indexOf(norm(needle)) !== -1;
 }
 
+/* 代码块的「复制」按钮：事件委托，兼容历史消息 */
+document.getElementById("aiChat").addEventListener("click", e => {
+  const btn = e.target.closest(".ai-copy");
+  if (!btn) return;
+  const pre = btn.parentElement.querySelector("pre");
+  if (!pre) return;
+  const code = pre.textContent;
+  const done = () => {
+    btn.textContent = "✓ 已复制";
+    btn.classList.add("done");
+    setTimeout(() => { btn.textContent = "复制"; btn.classList.remove("done"); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(done).catch(() => fallbackCopy(code, done));
+  } else {
+    fallbackCopy(code, done);
+  }
+});
+function fallbackCopy(text, cb) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.cssText = "position:fixed;opacity:0;left:-999px";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); cb(); } catch (e) { /* 忽略 */ }
+  ta.remove();
+}
+
+/* ---------- 面板宽度拖拽（宽屏专属） ---------- */
+(function setupAiResize() {
+  const panel = document.getElementById("aiPanel");
+  const grip = document.getElementById("aiGrip");
+  const layout = document.querySelector(".layout");
+  if (!panel || !grip || !layout) return;
+  const KEY = "python-practice-ai-width-v1";
+  let w = 400;
+  try {
+    const n = Number(localStorage.getItem(KEY));
+    if (n >= 320 && n <= 720) w = n;
+  } catch (e) { /* 忽略 */ }
+
+  function apply() {
+    document.documentElement.style.setProperty("--ai-w", w + "px");
+    const visible = getComputedStyle(panel).display !== "none";
+    if (visible) grip.style.left = (panel.getBoundingClientRect().left - 4) + "px";
+  }
+  function syncGrip() {
+    grip.hidden = document.body.classList.contains("ai-collapsed") || window.innerWidth < 1150;
+    if (!grip.hidden) apply();
+  }
+
+  let startX = 0, startW = 0, dragging = false;
+  grip.addEventListener("mousedown", e => {
+    if (window.innerWidth < 1150) return;
+    dragging = true; startX = e.clientX; startW = w;
+    grip.classList.add("on");
+    layout.classList.add("resizing");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    w = Math.min(720, Math.max(320, Math.round(startW + (startX - e.clientX))));
+    apply();
+  });
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    grip.classList.remove("on");
+    layout.classList.remove("resizing");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    try { localStorage.setItem(KEY, String(w)); } catch (e) { /* 忽略 */ }
+  });
+  grip.addEventListener("dblclick", () => {
+    w = 400;
+    apply();
+    try { localStorage.setItem(KEY, "400"); } catch (e) { /* 忽略 */ }
+  });
+  window.addEventListener("resize", syncGrip);
+  new MutationObserver(syncGrip).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  apply();
+  syncGrip();
+})();
+
 /* textarea 支持 Tab 缩进 */
 document.addEventListener("keydown", e => {
   if (e.target.classList && e.target.classList.contains("type-area") && e.key === "Tab") {
@@ -2028,9 +2158,71 @@ function addMsg(role, text) {
   if (empty) empty.remove();
   const div = document.createElement("div");
   div.className = "ai-msg " + role;
-  div.textContent = text;
+  if (role === "assistant") {
+    div.classList.add("ai-md");
+    div.innerHTML = renderAiMarkdown(text);
+  } else {
+    div.textContent = text;
+  }
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+}
+
+/* ---------- AI 回答的轻量 markdown 渲染 ----------
+   支持：``` 代码块（带复制按钮）、`行内代码`、**加粗**、#/标题、- 和 1. 列表。
+   先转义 HTML 再解析，防注入。 */
+function aiEsc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+/* 单个代码块的 HTML：语言标签 + 复制按钮 + 深色代码框 */
+function aiCodeHtml(b) {
+  return '<div class="ai-code"><span class="ai-lang">' + aiEsc((b && b.lang) || "") + "</span>" +
+    '<button type="button" class="ai-copy">复制</button>' +
+    "<pre><code>" + aiEsc((b && b.code ? b.code.replace(/\n$/, "") : "")) + "</code></pre></div>";
+}
+function renderAiMarkdown(src) {
+  const esc = aiEsc;
+  const blocks = [];
+  let text = String(src || "");
+  text = text.replace(/```([A-Za-z0-9+#._-]*)\r?\n?([\s\S]*?)```/g, (m, lang, code) => {
+    blocks.push({ lang: lang, code: code });
+    return "\u0000B" + (blocks.length - 1) + "\u0000";
+  });
+  text = esc(text);
+  text = text.replace(/`([^`\n]+)`/g, '<code class="ai-inline">$1</code>');
+  text = text.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  const lines = text.split("\n");
+  const out = [];
+  let list = null;
+  lines.forEach(ln => {
+    const bm = ln.match(/^\u0000B(\d+)\u0000\s*$/);
+    const ul = ln.match(/^\s*[-*]\s+(.*)/);
+    const ol = ln.match(/^\s*(\d+)[.、)]\s+(.*)/);
+    if (bm) {
+      if (list) { out.push("</" + list + ">"); list = null; }
+      out.push(aiCodeHtml(blocks[Number(bm[1])]));
+      return;
+    }
+    if (ul || ol) {
+      const tag = ul ? "ul" : "ol";
+      if (list !== tag) {
+        if (list) out.push("</" + list + ">");
+        out.push("<" + tag + ">");
+        list = tag;
+      }
+      out.push("<li>" + (ul ? ul[1] : ol[2]) + "</li>");
+      return;
+    }
+    if (list) { out.push("</" + list + ">"); list = null; }
+    if (!ln.trim()) { out.push(""); return; }
+    if (/^#{1,6}\s/.test(ln)) out.push("<p class=\"ai-h\">" + ln.replace(/^#{1,6}\s+/, "") + "</p>");
+    else out.push("<p>" + ln + "</p>");
+  });
+  if (list) out.push("</" + list + ">");
+  let html = out.join("");
+  /* 没单独成行的占位符（代码块混在句子里）也替换掉 */
+  html = html.replace(/\u0000B(\d+)\u0000/g, (m, i) => aiCodeHtml(blocks[Number(i)]));
+  return html;
 }
 
 function setAiStatus(text, cls) {
