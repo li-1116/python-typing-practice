@@ -2594,7 +2594,10 @@ document.getElementById("aiKey").addEventListener("input", paintCfgState);
   document.addEventListener("mousedown", e => {
     if (!pop.hidden && !pop.contains(e.target)) hidePop();
   });
-  document.addEventListener("scroll", () => { if (!pop.hidden) hidePop(); }, true);
+  /* 正文滚动时气泡会错位所以要关；但气泡自己内部的滚动条（如长代码横向滚动）不能关 */
+  document.addEventListener("scroll", e => {
+    if (!pop.hidden && !pop.contains(e.target)) hidePop();
+  }, true);
   document.getElementById("spClose").addEventListener("click", hidePop);
 
   pop.addEventListener("click", e => {
