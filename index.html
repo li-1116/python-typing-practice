@@ -1752,8 +1752,8 @@ document.addEventListener("click", e => {
     /* 保护：题目判的是「改成 XXX」那种改法；如果编辑框里不是这个改法，先提醒对齐，不直接判错 */
     const exM = FLAT[idx].ex.modify;
     const taM = document.querySelector(`.py-edit[data-edit-idx="${idx}"] textarea.py-code`);
-    const want = (exM.prompt || "").match(/改成\s*([^，。？?！,]+)/);
-    if (taM && want && !taM.value.includes(want[1].trim())) {
+    const want = (exM.prompt || "").match(/改成\s*([^，。？?！,（(]+)/);
+    if (taM && want && !looseCodeIncludes(taM.value, want[1].trim())) {
       fb.className = "feedback info";
       fb.textContent = "先别急着选：这道题判的是题目要求的那种改法——「" + want[1].trim() + "」。你编辑框里的代码现在不是这样，所以运行结果和答案对不上。把代码改成题目要求的，点「运行」，再对照输出选答案。";
       return;
@@ -1762,6 +1762,12 @@ document.addEventListener("click", e => {
     if (r.correct) btn.textContent = "查看解析";
   }
 });
+
+/* 宽松比较：忽略空格与括号差异——return(a + 1) 和 return a + 1 是同一种改法 */
+function looseCodeIncludes(hay, needle) {
+  const norm = s => String(s || "").replace(/\s+|[(（）)]/g, "");
+  return norm(hay).indexOf(norm(needle)) !== -1;
+}
 
 /* textarea 支持 Tab 缩进 */
 document.addEventListener("keydown", e => {
