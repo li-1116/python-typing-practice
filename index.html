@@ -148,6 +148,35 @@
   .out-fold .output-block { margin-top: 8px; }
   .ex-note { font-size: 14px; color: #374151; margin: 6px 0 14px; }
 
+  /* ---------- 章内「补充细节」折叠块 ---------- */
+  .ch-extra {
+    margin: 14px 0 18px; border: 1px solid var(--border); border-radius: 10px;
+    background: #fcfcfd; padding: 0 16px 0;
+  }
+  .ch-extra > summary {
+    cursor: pointer; list-style: none; padding: 12px 0;
+    font-size: 13.5px; font-weight: 600; color: #475569;
+  }
+  .ch-extra > summary::-webkit-details-marker { display: none; }
+  .ch-extra > summary::before { content: "▸ "; color: var(--accent); font-weight: 700; }
+  .ch-extra[open] > summary::before { content: "▾ "; }
+  .ch-extra[open] > summary { border-bottom: 1px dashed var(--border); margin-bottom: 12px; }
+  .ch-extra > summary:hover { color: var(--accent); }
+  .ch-extra ul { margin: 8px 0 12px 20px; padding: 0; }
+  .ch-extra li { font-size: 14px; line-height: 1.75; color: #374151; margin: 4px 0; }
+  .ch-extra p { font-size: 14px; line-height: 1.75; color: #374151; }
+  .ch-extra h4 { font-size: 14px; margin: 2px 0 8px; color: var(--text); }
+  .ch-extra pre.codeblock { font-size: 12.5px; margin: 8px 0 10px; }
+  .ch-extra table.mini {
+    width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 13px;
+  }
+  .ch-extra table.mini th, .ch-extra table.mini td {
+    border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top;
+  }
+  .ch-extra table.mini th { background: var(--bg-soft); font-weight: 600; color: #334155; }
+  .ch-extra table.mini td { color: #374151; }
+  .ch-extra table.mini td, .ch-extra table.mini th { overflow-wrap: anywhere; }
+
   /* ---------- 练习卡片 ---------- */
   .exercise {
     border: 1px solid var(--border); border-radius: 12px;
@@ -523,7 +552,7 @@
 
   <main class="content" id="content">
     <h1 class="site-banner"><span class="py">Python</span> 边学边练</h1>
-    <p class="site-desc">一个可以双击打开的本地练功房：12 章覆盖 Python 基础到测试验证，每章先读一小段知识，再过四关——读代码、亲手打、先猜再看解析、改一点试试。进度会自动保存在这个浏览器里。想深入理解？点代码块右上角的「问 AI」，支持 DeepSeek 或阿里云百炼（自备 Key，不填也不影响阅读练习）。</p>
+    <p class="site-desc">一个可以双击打开的本地练功房：<b>18 章</b>覆盖 Python 基础到对象、数据分析、API 与 AI 协作，每章先读一段知识，再过四关——读代码、亲手打、先猜再看解析、改一点试试；章末还有可展开的「补充细节」，把讲义的边角知识补齐。进度会自动保存在这个浏览器里。想深入理解？点代码块右上角的「问 AI」，支持 DeepSeek 或阿里云百炼（自备 Key，不填也不影响阅读练习）。</p>
     <p style="margin:-18px 0 32px"><a class="typing-entry" href="./python-typing.html" style="display:inline-block;padding:8px 16px"><span class="te-title">⌨️ 打开「Python 代码打字练习」</span><span class="te-desc" style="display:block">两关 32 题：基础 18 题 + 讲义原例 14 题</span></a></p>
     <div id="chapters"></div>
   </main>
@@ -599,6 +628,7 @@
 
 <script src="glossary.js"></script>
 <script src="py-runner.js"></script>
+<script src="chapters-extra.js"></script>
 <script>
 /* =========================================================
    数据：12 章 × 2 练习（内容原创）
@@ -1541,6 +1571,12 @@ print(average([80, 90]))`,
 }
 ];
 
+/* 合并扩展内容（chapters-extra.js）：12 章的补充细节 + 第 13-18 章 */
+if (window.CHAPTER_EXTRAS) {
+  CHAPTERS.forEach(ch => { if (window.CHAPTER_EXTRAS[ch.num]) ch.extra = window.CHAPTER_EXTRAS[ch.num]; });
+}
+if (window.MORE_CHAPTERS) CHAPTERS.push(...window.MORE_CHAPTERS);
+
 /* =========================================================
    工具：高亮 / 归一化 / 找差异
    ========================================================= */
@@ -1642,6 +1678,9 @@ function buildChapters() {
         <div class="output-block">${escapeHtml(ch.example.output)}</div>
         <p class="ex-note">${ch.example.note}</p>
       </details>
+      ${(ch.extra || []).map(g =>
+        `<details class="ch-extra"><summary>补充细节：${g.h}</summary>${g.html}</details>`
+      ).join("")}
       ${exHtml}
     </section>`;
   }).join("");
